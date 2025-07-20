@@ -1,0 +1,16 @@
+# Xmake cache
+.xmake/
+build/
+
+# VS Code
+.vscode/
+
+# JetBrains IDEs
+.idea/
+
+# VS
+.vs/
+out/
+
+# Engine
+*.log

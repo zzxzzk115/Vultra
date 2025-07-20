@@ -1,2 +1,2 @@
-# Ultra-V
-Ultra-V is a modern 3D engine for game development, graphics research and more.
+# Vultra
+Vultra is a modern 3D engine for game development, graphics research and more.
