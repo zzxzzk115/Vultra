@@ -22,12 +22,12 @@ if is_plat("windows") then
     add_cxxflags("/bigobj") -- avoid big obj
     add_cxxflags("-D_SILENCE_STDEXT_ARR_ITERS_DEPRECATION_WARNING")
     add_cxxflags("/EHsc")
-    if is_mode("debug") then
-        set_runtimes("MDd")
-        add_links("ucrtd")
-    else
-        set_runtimes("MD")
-    end
+    -- if is_mode("debug") then
+    --     set_runtimes("MDd")
+    --     add_links("ucrtd")
+    -- else
+    --     set_runtimes("MD")
+    -- end
 else
     add_cxxflags("-fexceptions")
 end
@@ -46,6 +46,9 @@ add_rules("plugin.compile_commands.autoupdate", {outputdir = ".vscode"})
 
 -- add the official xmake repository
 add_repositories("xmake-repo https://github.com/xmake-io/xmake-repo.git dev")
+
+-- include external dependencies
+includes("external")
 
 -- include source
 includes("src")
