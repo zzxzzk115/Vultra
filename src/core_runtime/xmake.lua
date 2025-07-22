@@ -9,7 +9,8 @@ add_requires("vcpkg::assimp", {configs = {shared = true, debug = is_mode("debug"
 add_requires("vcpkg::spirv-cross", {configs = {shared = true, debug = is_mode("debug")}, alias = "spirv-cross"})
 add_requires("vcpkg::glslang", {configs = {shared = true, debug = is_mode("debug")}, alias = "glslang"})
 
-add_requires("spdlog", "fmt", "magic_enum", "entt", "tracy", "glm", "stb", "vulkansdk", "vulkan-memory-allocator-hpp")
+add_requires("spdlog", "fmt", "magic_enum", "entt", "glm", "stb", "vulkansdk", "vulkan-memory-allocator-hpp")
+add_requires("tracy 0.11.1", {configs = {shared = true, on_demand = true, fibers = false}})
 
 -- target defination, name: vultra
 target("vultra")
