@@ -30,6 +30,11 @@ target("vultra")
     add_packages("sdl3", "imgui", "jsoncpp", "openxr-loader", "assimp", "spirv-cross", "glslang", { public = true })
     add_packages("spdlog", "fmt", "magic_enum", "entt", "tracy", "glm", "stb", "vulkansdk", "vulkan-memory-allocator-hpp", { public = true })
 
+    -- linux workaround for spirv-cross linking
+    if is_plat("linux") then
+        add_links("spirv-cross-core", "spirv-cross-glsl")
+    end
+
     -- tracy & tracky required defines
     -- default: tracy enabled, tracky disabled
     add_defines("TRACY_ENABLE=1", { public = true })
