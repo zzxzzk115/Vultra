@@ -1,16 +1,32 @@
 -- add requirements
 add_requires("FrameGraph")
 
-add_requires("vcpkg::sdl3[vulkan]", {configs = {shared = true}, alias = "sdl3"})
-add_requires("vcpkg::imgui[docking-experimental,sdl3-binding,vulkan-binding,wchar32]", { alias = "imgui" })
-add_requires("vcpkg::jsoncpp", {configs = {shared = true, debug = is_mode("debug")}, alias = "jsoncpp"})
-add_requires("vcpkg::openxr-loader", {configs = {shared = true, debug = is_mode("debug")}, alias = "openxr-loader"})
-add_requires("vcpkg::assimp", {configs = {shared = true, debug = is_mode("debug")}, alias = "assimp"})
-add_requires("vcpkg::spirv-cross", {configs = {shared = true, debug = is_mode("debug")}, alias = "spirv-cross"})
-add_requires("vcpkg::glslang", {configs = {shared = true, debug = is_mode("debug")}, alias = "glslang"})
+add_requires("vcpkg::openxr-loader", {configs = {shared = true, debug = is_mode("debug")}, alias = is_mode("debug") and "openxr-loader-debug" or "openxr-loader"})
 
 add_requires("spdlog", "fmt", "magic_enum", "entt", "glm", "stb", "vulkansdk", "vulkan-memory-allocator-hpp")
-add_requires("tracy 0.11.1", {configs = {shared = true, on_demand = true, fibers = false}})
+add_requires("glfw", {configs = {wayland = true}})
+add_requires("tracy 0.11.1", {configs = {
+    on_demand = true,
+    enforce_callstack = true,
+    callstack = true,
+    broadcast = true,
+    code_transfer = true,
+    context_switch = true,
+    exit = true,
+    sampling = true,
+    verify = true,
+    vsync_capture = true,
+    frame_image = true,
+    system_tracing = true,
+    crash_handler = true
+}})
+add_requires("imgui", {configs = { vulkan = true, sdl3 = true, wchar32 = true}})
+add_requires("libsdl3", {configs = {shared = true, debug = is_mode("debug"), vulkan = true }})
+add_requires("jsoncpp", {configs = {shared = true, debug = is_mode("debug")}})
+add_requires("assimp", {configs = {shared = true, debug = is_mode("debug")}})
+add_requires("spirv-cross", {configs = {shared = true, debug = is_mode("debug")}})
+add_requires("glslang", {configs = {shared = true, debug = is_mode("debug")}})
+
 
 -- target defination, name: vultra
 target("vultra")
@@ -28,8 +44,9 @@ target("vultra")
 
     -- add packages
     add_packages("FrameGraph", { public = true })
-    add_packages("sdl3", "imgui", "jsoncpp", "openxr-loader", "assimp", "spirv-cross", "glslang", { public = true })
-    add_packages("spdlog", "fmt", "magic_enum", "entt", "tracy", "glm", "stb", "vulkansdk", "vulkan-memory-allocator-hpp", { public = true })
+    add_packages(is_mode("debug") and "openxr-loader-debug" or "openxr-loader", { public = true })
+    add_packages("spdlog", "fmt", "magic_enum", "entt", "glm", "stb", "vulkansdk", "vulkan-memory-allocator-hpp", { public = true })
+    add_packages("tracy", "imgui", "libsdl3", "jsoncpp", "assimp", "spirv-cross", "glslang", { public = true })
 
     -- linux workaround for spirv-cross linking
     if is_plat("linux") then
