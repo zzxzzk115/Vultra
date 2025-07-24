@@ -45,8 +45,8 @@ add_rules("mode.debug", "mode.release")
 add_rules("plugin.vsxmake.autoupdate")
 add_rules("plugin.compile_commands.autoupdate", {outputdir = ".vscode"})
 
--- add the official xmake repository
-add_repositories("xmake-repo https://github.com/xmake-io/xmake-repo.git dev")
+-- add repositories
+add_repositories("my-xmake-repo https://github.com/zzxzzk115/xmake-repo.git backup")
 
 -- include external dependencies
 includes("external")

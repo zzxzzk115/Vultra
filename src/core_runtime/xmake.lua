@@ -1,9 +1,7 @@
 -- add requirements
 add_requires("FrameGraph")
 
-add_requires("vcpkg::openxr-loader", {configs = {shared = true, debug = is_mode("debug")}, alias = is_mode("debug") and "openxr-loader-debug" or "openxr-loader"})
-
-add_requires("spdlog", "fmt", "magic_enum", "entt", "glm", "stb", "vulkansdk", "vulkan-memory-allocator-hpp")
+add_requires("spdlog", "fmt", "magic_enum", "entt", "glm", "stb", "vulkansdk", "vulkan-memory-allocator-hpp", "openxr-sdk")
 add_requires("glfw", {configs = {wayland = true}})
 add_requires("tracy 0.11.1", {configs = {
     on_demand = true,
@@ -45,7 +43,7 @@ target("vultra")
     -- add packages
     add_packages("FrameGraph", { public = true })
     add_packages(is_mode("debug") and "openxr-loader-debug" or "openxr-loader", { public = true })
-    add_packages("spdlog", "fmt", "magic_enum", "entt", "glm", "stb", "vulkansdk", "vulkan-memory-allocator-hpp", { public = true })
+    add_packages("spdlog", "fmt", "magic_enum", "entt", "glm", "stb", "vulkansdk", "vulkan-memory-allocator-hpp", "openxr-sdk", { public = true })
     add_packages("tracy", "imgui", "libsdl3", "jsoncpp", "assimp", "spirv-cross", "glslang", { public = true })
 
     -- linux workaround for spirv-cross linking
