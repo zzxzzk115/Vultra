@@ -53,6 +53,8 @@ namespace vultra
 
                 struct Entry
                 {
+                    Entry(T* resource, std::size_t life) : resource(resource), life(life) {}
+
                     T*          resource;
                     std::size_t life {0}; // In frames.
                 };

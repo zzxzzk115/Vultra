@@ -6,13 +6,11 @@
 #include <memory>
 #include <mutex>
 #include <string_view>
-#include <thread>
 #include <unordered_map> // Would want a nicer hash table, e.g., flat_map of some kind
 #include <vector>
 
 #include <cassert>
 #include <cstdio>
-#include <iostream>
 
 #ifdef TRACKY_OPENGL
 #include <glad/glad.h>
@@ -22,7 +20,62 @@
 #error "Undefined TRACKY GPU backend"
 #endif
 
+
+// NOLINTBEGIN
 // clang-format off
+#if defined(__APPLE__)
+    #define TRACKY_USE_THREAD_FALLBACK
+#endif
+
+#if defined(TRACKY_USE_THREAD_FALLBACK)
+#include <thread>
+#include <utility>
+
+class JThread {
+public:
+    JThread() = default;
+
+    template <typename Callable>
+    explicit JThread(Callable&& func)
+        : mThread(std::forward<Callable>(func)) {}
+
+    // Move constructor
+    JThread(JThread&& other) noexcept
+        : mThread(std::move(other.mThread)) {}
+
+    // Move assignment
+    JThread& operator=(JThread&& other) noexcept {
+        if (this != &other) {
+            if (mThread.joinable())
+                mThread.join();  // join old thread before overwriting
+            mThread = std::move(other.mThread);
+        }
+        return *this;
+    }
+
+    // No copy
+    JThread(const JThread&) = delete;
+    JThread& operator=(const JThread&) = delete;
+
+    ~JThread() {
+        if (mThread.joinable())
+            mThread.join();
+    }
+
+    void join() {
+        if (mThread.joinable())
+            mThread.join();
+    }
+
+private:
+    std::thread mThread;
+};
+using JThread = JThread;
+#else
+#include <thread>
+using JThread = std::jthread;
+#endif
+
 namespace
 {
 	using namespace tracky;
@@ -114,7 +167,7 @@ namespace
 #ifdef TRACKY_OPENGL
 			Tracky_();
 #elifdef TRACKY_VULKAN
-	        Tracky_(vk::Device device, uint32_t queryCount);
+	        Tracky_(vk::Device aDevice, uint32_t aQueryCount);
 #endif
 
 	        ~Tracky_();
@@ -179,7 +232,7 @@ namespace
 			// Any frame
 			std::deque<Records_*> mPending;
 
-			std::jthread mScribe;
+			JThread mScribe;
 
 #ifdef TRACKY_OPENGL
 			struct
@@ -261,7 +314,7 @@ namespace tracky
 		gTracky = std::make_unique<Tracky_>();
 	}
 #elifdef TRACKY_VULKAN
-    void startup(vk::Device device, uint32_t queryCount)
+    void startup(vk::Device aDevice, uint32_t aQueryCount)
     {
         if( gTracky )
         {
@@ -269,7 +322,7 @@ namespace tracky
             return;
         }
 
-        gTracky = std::make_unique<Tracky_>(device, queryCount);
+        gTracky = std::make_unique<Tracky_>(aDevice, aQueryCount);
     }
     void bind_cmd_buffer( vk::CommandBuffer aCmdBuffer )
     {
@@ -290,7 +343,7 @@ namespace
 #ifdef TRACKY_OPENGL
     Tracky_::Tracky_()
 #elifdef TRACKY_VULKAN
-	Tracky_::Tracky_(vk::Device device, uint32_t queryCount)
+	Tracky_::Tracky_(vk::Device aDevice, uint32_t aQueryCount)
 #endif
 		: mEpoch( Clock_::now() )
 	{
@@ -302,7 +355,7 @@ namespace
 			recs->reserve( kInitialRecordBuffer_ );
 		}
 
-		mScribe = std::jthread( [self=this] () {
+		mScribe = JThread( [self=this] () {
 			self->scribe_();
 		} );
 
@@ -312,15 +365,15 @@ namespace
 		glGenQueries( kInitialQueries_, gpu.mQueryBuffer.data() );
 #elifdef TRACKY_VULKAN
         // Vulkan resources
-	    mDevice = device;
-	    mMaxQueries = queryCount;
+	    mDevice = aDevice;
+	    mMaxQueries = aQueryCount;
 	    mQueryIndex = 0;
 	    mVkInitialized = true;
 
 	    vk::QueryPoolCreateInfo qinfo{};
 	    qinfo.queryType = vk::QueryType::eTimestamp;
-	    qinfo.queryCount = queryCount;
-	    mQueryPool = device.createQueryPool(qinfo);
+	    qinfo.queryCount = aQueryCount;
+	    mQueryPool = aDevice.createQueryPool(qinfo);
 #endif
 	}
 
@@ -908,6 +961,12 @@ namespace
 					auto const scopeOverhead = rec.scope.late - rec.scope.early;
 					totalOverhead += duration_(scopeOverhead);
 				} break;
+				case ERecord_::invalid:
+				case ERecord_::frameBegin:
+				case ERecord_::frameEnd:
+				case ERecord_::counter:
+				case ERecord_::counterPersistent:
+					break;
 			}
 		}
 
@@ -964,6 +1023,12 @@ namespace
 					auto const scopeOverhead = rec.scope.late - rec.scope.early;
 					totalOverhead += duration_(scopeOverhead);
 				} break;
+				case ERecord_::invalid:
+				case ERecord_::frameBegin:
+				case ERecord_::frameEnd:
+				case ERecord_::counter:
+				case ERecord_::counterPersistent:
+					break;
 			}
 		}
 
@@ -1027,6 +1092,13 @@ namespace
 						cc.max = std::max( cc.max, cc.value );
 					}
 				} break;
+				case ERecord_::invalid:
+				case ERecord_::frameBegin:
+				case ERecord_::frameEnd:
+				case ERecord_::scopeEnter:
+				case ERecord_::scopeNext:
+				case ERecord_::scopeLeave:
+					break;
 			}
 		}
 
@@ -1048,3 +1120,4 @@ namespace
 	}
 }
 // clang-format on
+// NOLINTEND

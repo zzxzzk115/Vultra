@@ -14,6 +14,8 @@ namespace vultra
             uint32_t           numAllocatedSets {0};
 
             const static uint32_t s_kSetsPerPool;
+
+            explicit DescriptorPool(vk::DescriptorPool h) : handle(h), numAllocatedSets(0) {}
         };
 
         class DescriptorSetAllocator final

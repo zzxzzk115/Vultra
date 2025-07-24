@@ -112,7 +112,12 @@ namespace
         createInfo.messageType = vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral |
                                  vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation |
                                  vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance;
+
+#if VK_VERSION_1_4
         createInfo.pfnUserCallback = debugCallback;
+#else
+        createInfo.pfnUserCallback = reinterpret_cast<PFN_vkDebugUtilsMessengerCallbackEXT>(debugCallback);
+#endif
 
         debugMessenger = instance.createDebugUtilsMessengerEXT(createInfo);
     }
@@ -686,8 +691,12 @@ namespace vultra
         void RenderDevice::createInstance()
         {
             // Setup dynamic loader
+#if VK_VERSION_1_4
             static const vk::detail::DynamicLoader GlobalDynamicLoader;
-            auto                                   vkGetInstanceProcAddr =
+#else
+            static const vk::DynamicLoader GlobalDynamicLoader;
+#endif
+            auto vkGetInstanceProcAddr =
                 GlobalDynamicLoader.getProcAddress<PFN_vkGetInstanceProcAddr>("vkGetInstanceProcAddr");
             VULKAN_HPP_DEFAULT_DISPATCHER.init(vkGetInstanceProcAddr);
 
@@ -759,10 +768,10 @@ namespace vultra
                     createInfo.setPEnabledLayerNames(validationLayers);
                 }
                 VULTRA_CORE_TRACE("[RenderDevice] Found layer: {} \"{}\" {}-{}",
-                                   layer.layerName.data(),
-                                   layer.description.data(),
-                                   layer.implementationVersion,
-                                   layer.specVersion);
+                                  layer.layerName.data(),
+                                  layer.description.data(),
+                                  layer.implementationVersion,
+                                  layer.specVersion);
             }
             if (!found)
             {

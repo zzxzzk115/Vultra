@@ -19,7 +19,12 @@ namespace vultra
 
             struct Descriptor
             {
-                vk::DescriptorType   type {};
+                explicit Descriptor(vk::DescriptorType type)
+                    : type {type}
+                {
+                }
+
+                vk::DescriptorType   type {vk::DescriptorType::eSampler};
                 uint32_t             count {1};
                 vk::ShaderStageFlags stageFlags {0};
             };

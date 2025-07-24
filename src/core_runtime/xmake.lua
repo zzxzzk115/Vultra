@@ -1,8 +1,6 @@
 -- add requirements
-add_requires("FrameGraph")
-
-add_requires("spdlog", "fmt", "magic_enum", "entt", "glm", "stb", "vulkansdk", "vulkan-memory-allocator-hpp", "openxr-sdk")
-add_requires("glfw", {configs = {wayland = true}})
+add_requires("fmt", { system = false })
+add_requires("spdlog", "magic_enum", "entt", "glm", "stb", "vulkansdk", "vulkan-memory-allocator-hpp", "fg")
 add_requires("tracy 0.11.1", {configs = {
     on_demand = true,
     enforce_callstack = true,
@@ -18,13 +16,11 @@ add_requires("tracy 0.11.1", {configs = {
     system_tracing = true,
     crash_handler = true
 }})
-add_requires("imgui", {configs = { vulkan = true, sdl3 = true, wchar32 = true}})
-add_requires("libsdl3", {configs = {shared = true, debug = is_mode("debug"), vulkan = true }})
-add_requires("jsoncpp", {configs = {shared = true, debug = is_mode("debug")}})
+add_requires("imgui v1.92.0-docking", {configs = { vulkan = true, sdl3 = true, wchar32 = true}})
 add_requires("assimp", {configs = {shared = true, debug = is_mode("debug")}})
 add_requires("spirv-cross", {configs = {shared = true, debug = is_mode("debug")}})
 add_requires("glslang", {configs = {shared = true, debug = is_mode("debug")}})
-
+add_requires("openxr-sdk", {configs = {shared = true, debug = is_mode("debug")}})
 
 -- target defination, name: vultra
 target("vultra")
@@ -41,10 +37,8 @@ target("vultra")
     add_files("src/**.cpp")
 
     -- add packages
-    add_packages("FrameGraph", { public = true })
-    add_packages(is_mode("debug") and "openxr-loader-debug" or "openxr-loader", { public = true })
-    add_packages("spdlog", "fmt", "magic_enum", "entt", "glm", "stb", "vulkansdk", "vulkan-memory-allocator-hpp", "openxr-sdk", { public = true })
-    add_packages("tracy", "imgui", "libsdl3", "jsoncpp", "assimp", "spirv-cross", "glslang", { public = true })
+    add_packages("fmt", "spdlog", "magic_enum", "entt", "glm", "stb", "vulkansdk", "vulkan-memory-allocator-hpp", "fg", { public = true })
+    add_packages("tracy", "imgui", "libsdl3", "assimp", "spirv-cross", "glslang", "openxr-sdk", { public = true })
 
     -- linux workaround for spirv-cross linking
     if is_plat("linux") then

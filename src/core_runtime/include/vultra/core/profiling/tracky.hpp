@@ -14,6 +14,7 @@
 #include <vulkan/vulkan.hpp>
 #endif
 
+// NOLINTBEGIN
 // clang-format off
 
 // Configuration
@@ -245,8 +246,8 @@ namespace tracky
 #ifdef TRACKY_OPENGL
 	void startup(); //TODO: options for what output etc., where to store, ...
 #elifdef TRACKY_VULKAN
-    void startup(vk::Device device, uint32_t queryCount);
-    void bind_cmd_buffer(vk::CommandBuffer cmdBuf);
+    void startup(vk::Device aDevice, uint32_t aQueryCount);
+    void bind_cmd_buffer(vk::CommandBuffer aCmdBuffer);
 #endif
 	void teardown();
 
@@ -347,4 +348,5 @@ namespace tracky
 	}
 
     // clang-format on
+	// NOLINTEND
 } // namespace tracky
