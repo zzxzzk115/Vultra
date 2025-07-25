@@ -28,7 +28,7 @@ jobs:
           vulkan-use-cache: true
 
       - name: Cache Build
-        run: xmake f --policies=build.ccache:y
+        run: xmake f --policies=build.ccache:y -y
 
       - name: Build
         run: xmake repo -u && xmake -vD -y
