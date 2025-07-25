@@ -46,6 +46,7 @@ namespace vultra
             [[nodiscard]] XrInstance              getXrInstance() const { return m_XrInstance; }
             [[nodiscard]] XrSystemId              getXrSystemId() const { return m_XrSystemId; }
             [[nodiscard]] XrViewConfigurationType getXrViewType() const { return m_ViewType; }
+            [[nodiscard]] XrInstanceProperties    getXrInstanceProperties() const { return m_XrInstanceProperties; }
 
         private:
             void createXrInstance();
