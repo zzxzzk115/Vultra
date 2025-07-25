@@ -459,7 +459,7 @@ namespace vultra
             return m_SwapchainStereoRenderTargetViews.at(index);
         }
 
-        rhi::PixelFormat XRHeadset::getSwapchainPixelFormat() const { return colorFormat; }
+        rhi::PixelFormat XRHeadset::getSwapchainPixelFormat() { return colorFormat; }
 
         bool XRHeadset::beginSession() const
         {

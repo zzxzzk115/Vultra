@@ -198,7 +198,7 @@ namespace vultra
             void createPipelineCache();
             void createDefaultDescriptorPool();
             void createTracyContext();
-            void createTracky();
+            static void createTracky();
 
             vk::CommandBuffer allocateCommandBuffer() const;
             vk::Sampler       createSampler(const SamplerInfo&) const;
