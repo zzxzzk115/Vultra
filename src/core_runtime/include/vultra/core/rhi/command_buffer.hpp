@@ -142,7 +142,7 @@ namespace vultra
             CommandBuffer(const vk::Device,
                           const vk::CommandPool,
                           const vk::CommandBuffer,
-                          const TracyVkCtx,
+                          TracyVkCtx,
                           const vk::Fence);
 
             [[nodiscard]] bool invariant(const State requiredState, const InvariantFlags = InvariantFlags::eNone) const;
@@ -191,12 +191,12 @@ template<>
 struct HasFlags<vultra::rhi::CommandBuffer::InvariantFlags> : std::true_type
 {};
 
-#define _TRACY_GPU_ZONE(TracyContext, CommandBufferHandle, Label) \
+#define TRACY_GPU_ZONE_(TracyContext, CommandBufferHandle, Label) \
     ZoneScopedN(Label); \
     TracyVkZone(TracyContext, CommandBufferHandle, Label)
 
 #define TRACY_GPU_ZONE(CommandBuffer, Label) \
-    _TRACY_GPU_ZONE(CommandBuffer.getTracyContext(), CommandBuffer.getHandle(), Label)
+    TRACY_GPU_ZONE_(CommandBuffer.getTracyContext(), CommandBuffer.getHandle(), Label)
 
 #define TRACY_GPU_TRANSIENT_ZONE(CommandBuffer, Label) \
     ZoneTransientN(_tracy_zone, Label, true); \

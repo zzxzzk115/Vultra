@@ -2,7 +2,6 @@
 #include "vultra/core/base/visitor_helper.hpp"
 #include "vultra/core/rhi/buffer.hpp"
 #include "vultra/core/rhi/compute_pipeline.hpp"
-#include "vultra/core/rhi/graphics_pipeline.hpp"
 #include "vultra/core/rhi/index_buffer.hpp"
 #include "vultra/core/rhi/texture.hpp"
 #include "vultra/core/rhi/vertex_buffer.hpp"
@@ -93,7 +92,7 @@ namespace vultra
             }
         } // namespace
 
-#define _TRACY_GPU_ZONE2(Label) _TRACY_GPU_ZONE(m_TracyContext, m_Handle, "RHI::" Label)
+#define TRACY_GPU_ZONE2_(Label) TRACY_GPU_ZONE_(m_TracyContext, m_Handle, "RHI::" Label)
 
         CommandBuffer::CommandBuffer() { m_DescriptorSetCache.reserve(100); }
 
@@ -221,7 +220,7 @@ namespace vultra
 
             if (m_Pipeline != &pipeline)
             {
-                _TRACY_GPU_ZONE2("BindPipeline");
+                TRACY_GPU_ZONE2_("BindPipeline");
                 m_Handle.bindPipeline(pipeline.getBindPoint(), pipeline.getHandle());
                 m_Pipeline = std::addressof(pipeline);
             }
@@ -238,7 +237,7 @@ namespace vultra
         {
             assert(invariant(State::eRecording, InvariantFlags::eValidComputePipeline));
 
-            _TRACY_GPU_ZONE2("Dispatch");
+            TRACY_GPU_ZONE2_("Dispatch");
             flushBarriers();
             m_Handle.dispatch(groupCount.x, groupCount.y, groupCount.z);
 
@@ -251,7 +250,7 @@ namespace vultra
             assert(descriptorSet);
             assert(invariant(State::eRecording, InvariantFlags::eValidPipeline));
 
-            _TRACY_GPU_ZONE2("BindDescriptorSet");
+            TRACY_GPU_ZONE2_("BindDescriptorSet");
             m_Handle.bindDescriptorSets(
                 m_Pipeline->getBindPoint(), m_Pipeline->getLayout().getHandle(), index, 1, &descriptorSet, 0, nullptr);
 
@@ -266,7 +265,7 @@ namespace vultra
             assert(data && size > 0);
             assert(invariant(State::eRecording, InvariantFlags::eValidPipeline));
 
-            _TRACY_GPU_ZONE2("PushConstants");
+            TRACY_GPU_ZONE2_("PushConstants");
             m_Handle.pushConstants(m_Pipeline->getLayout().getHandle(),
                                    static_cast<vk::ShaderStageFlagBits>(shaderStages),
                                    offset,
@@ -280,7 +279,7 @@ namespace vultra
         {
             assert(invariant(State::eRecording, InvariantFlags::eOutsideRenderPass));
 
-            _TRACY_GPU_ZONE2("BeginRendering");
+            TRACY_GPU_ZONE2_("BeginRendering");
             vk::RenderingAttachmentInfo depthAttachment {};
             if (framebufferInfo.depthAttachment)
             {
@@ -318,7 +317,7 @@ namespace vultra
         {
             assert(invariant(State::eRecording, InvariantFlags::eInsideRenderPass));
 
-            _TRACY_GPU_ZONE2("EndRendering");
+            TRACY_GPU_ZONE2_("EndRendering");
             m_Handle.endRenderingKHR();
 
             m_InsideRenderPass = false;
@@ -330,7 +329,7 @@ namespace vultra
         {
             assert(invariant(State::eRecording));
 
-            _TRACY_GPU_ZONE2("SetViewport");
+            TRACY_GPU_ZONE2_("SetViewport");
 
             vk::Viewport viewport {};
             viewport.x        = static_cast<float>(rect.offset.x);
@@ -348,7 +347,7 @@ namespace vultra
         {
             assert(invariant(State::eRecording));
 
-            _TRACY_GPU_ZONE2("SetScissor");
+            TRACY_GPU_ZONE2_("SetScissor");
             const auto scissor = static_cast<vk::Rect2D>(rect);
             m_Handle.setScissor(0, 1, &scissor);
 
@@ -360,7 +359,7 @@ namespace vultra
             assert(invariant(State::eRecording,
                              InvariantFlags::eValidGraphicsPipeline | InvariantFlags::eInsideRenderPass));
 
-            _TRACY_GPU_ZONE2("Draw");
+            TRACY_GPU_ZONE2_("Draw");
 
             constexpr auto kFirstInstance = 0u;
             setVertexBuffer(gi.vertexBuffer, 0);
@@ -386,7 +385,7 @@ namespace vultra
             assert(buffer);
             assert(invariant(State::eRecording, InvariantFlags::eOutsideRenderPass));
 
-            _TRACY_GPU_ZONE2("ClearBuffer");
+            TRACY_GPU_ZONE2_("ClearBuffer");
             flushBarriers();
 
             m_Handle.fillBuffer(buffer.getHandle(), 0, vk::WholeSize, value);
@@ -398,7 +397,7 @@ namespace vultra
             assert(texture && static_cast<bool>(texture.getUsageFlags() & ImageUsage::eTransferDst));
             assert(invariant(State::eRecording, InvariantFlags::eOutsideRenderPass));
 
-            _TRACY_GPU_ZONE2("ClearTexture");
+            TRACY_GPU_ZONE2_("ClearTexture");
 
             const auto                imageHandle = texture.getImageHandle();
             const auto                imageLayout = static_cast<vk::ImageLayout>(texture.getImageLayout());
@@ -425,7 +424,7 @@ namespace vultra
             assert(src && dst);
             assert(invariant(State::eRecording, InvariantFlags::eOutsideRenderPass));
 
-            _TRACY_GPU_ZONE2("CopyBuffer");
+            TRACY_GPU_ZONE2_("CopyBuffer");
             flushBarriers();
 
             m_Handle.copyBuffer(src.getHandle(), dst.getHandle(), 1, &copyRegion);
@@ -452,7 +451,7 @@ namespace vultra
             assert(src && dst && !copyRegions.empty());
             assert(invariant(State::eRecording, InvariantFlags::eOutsideRenderPass));
 
-            _TRACY_GPU_ZONE2("Buffer->Texture");
+            TRACY_GPU_ZONE2_("Buffer->Texture");
 
             constexpr auto kExpectedLayout = ImageLayout::eTransferDst;
             m_BarrierBuilder.imageBarrier(
@@ -498,7 +497,7 @@ namespace vultra
             assert(buffer && data);
             assert(invariant(State::eRecording, InvariantFlags::eOutsideRenderPass));
 
-            _TRACY_GPU_ZONE2("UpdateBuffer");
+            TRACY_GPU_ZONE2_("UpdateBuffer");
 
             flushBarriers();
             if (size > kMaxDataSize)
@@ -524,7 +523,7 @@ namespace vultra
             assert(dst && static_cast<bool>(dst.getUsageFlags() & ImageUsage::eTransferDst));
             assert(invariant(State::eRecording, InvariantFlags::eOutsideRenderPass));
 
-            _TRACY_GPU_ZONE2("Texture->Texture");
+            TRACY_GPU_ZONE2_("Texture->Texture");
 
             getBarrierBuilder()
                 .imageBarrier(
@@ -599,7 +598,7 @@ namespace vultra
             assert(texture);
             assert(invariant(State::eRecording, InvariantFlags::eOutsideRenderPass));
 
-            _TRACY_GPU_ZONE2("GenerateMipmaps");
+            TRACY_GPU_ZONE2_("GenerateMipmaps");
 
             const auto imageHandle = texture.getImageHandle();
             m_BarrierBuilder.imageBarrier(
@@ -711,7 +710,7 @@ namespace vultra
 
             if (auto barrier = m_BarrierBuilder.build(); barrier.isEffective())
             {
-                _TRACY_GPU_ZONE2("FlushBarriers");
+                TRACY_GPU_ZONE2_("FlushBarriers");
                 m_Handle.pipelineBarrier2KHR(&barrier.m_Info);
             }
             return *this;
@@ -720,7 +719,7 @@ namespace vultra
         CommandBuffer::CommandBuffer(const vk::Device        device,
                                      const vk::CommandPool   commandPool,
                                      const vk::CommandBuffer handle,
-                                     const TracyVkCtx        tracyContext,
+                                     TracyVkCtx              tracyContext,
                                      const vk::Fence         fence) :
             m_Device(device), m_CommandPool(commandPool), m_State(State::eInitial), m_Handle(handle),
             m_TracyContext(tracyContext), m_Fence(fence), m_DescriptorSetAllocator(device)
@@ -818,7 +817,7 @@ namespace vultra
 
             if (vertexBuffer)
             {
-                _TRACY_GPU_ZONE2("SetVertexBuffer");
+                TRACY_GPU_ZONE2_("SetVertexBuffer");
                 const auto bufferHandle = vertexBuffer->getHandle();
                 m_Handle.bindVertexBuffers(0, 1, &bufferHandle, &offset);
             }
@@ -834,7 +833,7 @@ namespace vultra
 
             if (indexBuffer)
             {
-                _TRACY_GPU_ZONE2("SetIndexBuffer");
+                TRACY_GPU_ZONE2_("SetIndexBuffer");
                 const auto indexType = toVk(indexBuffer->getIndexType());
                 m_Handle.bindIndexBuffer(indexBuffer->getHandle(), 0, indexType);
             }

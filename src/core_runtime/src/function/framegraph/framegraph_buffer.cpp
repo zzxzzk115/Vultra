@@ -20,15 +20,15 @@ namespace vultra
             buffer = nullptr;
         }
 
-        void FrameGraphBuffer::preRead(const Desc& desc, uint32_t bits, void* ctx)
+        void FrameGraphBuffer::preRead(const Desc& desc, uint32_t flags, void* ctx)
         {
             ZoneScopedN("B*");
 
             auto&             rc = *static_cast<RenderContext*>(ctx);
             rhi::BarrierScope dst {};
 
-            const auto bindingInfo = decodeBindingInfo(bits);
-            if (bool(bindingInfo.pipelineStage & PipelineStage::eTransfer))
+            const auto bindingInfo = decodeBindingInfo(flags);
+            if (static_cast<bool>(bindingInfo.pipelineStage & PipelineStage::eTransfer))
             {
                 dst.accessMask = rhi::Access::eTransferRead;
             }
@@ -73,15 +73,15 @@ namespace vultra
             rc.commandBuffer.getBarrierBuilder().bufferBarrier({.buffer = *buffer}, dst);
         }
 
-        void FrameGraphBuffer::preWrite(const Desc& desc, uint32_t bits, void* context)
+        void FrameGraphBuffer::preWrite(const Desc& /*desc*/, uint32_t flags, void* ctx)
         {
             ZoneScopedN("+B");
 
-            auto& rc                             = *static_cast<RenderContext*>(context);
-            const auto [location, pipelineStage] = decodeBindingInfo(bits);
+            auto& rc                             = *static_cast<RenderContext*>(ctx);
+            const auto [location, pipelineStage] = decodeBindingInfo(flags);
 
             rhi::BarrierScope dst {};
-            if (bool(pipelineStage & PipelineStage::eTransfer))
+            if (static_cast<bool>(pipelineStage & PipelineStage::eTransfer))
             {
                 dst = {
                     .stageMask  = rhi::PipelineStages::eTransfer,

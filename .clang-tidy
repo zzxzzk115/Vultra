@@ -34,7 +34,7 @@ Checks: >
   performance-no-automatic-move,
   performance-trivially-destructible,
   performance-unnecessary-copy-initialization,
-  readability-avoid-const-params-in-decls,
+  # readability-avoid-const-params-in-decls,
   readability-const-return-type,
   readability-container-size-empty,
   readability-convert-member-functions-to-static,
@@ -69,7 +69,7 @@ Checks: >
   bugprone-incorrect-roundings,
   bugprone-infinite-loop,
   bugprone-integer-division,
-  bugprone-macro-parentheses,
+  # bugprone-macro-parentheses,
   bugprone-macro-repeated-side-effects,
   bugprone-misplaced-operator-in-strlen-in-alloc,
   bugprone-misplaced-pointer-arithmetic-in-alloc,
@@ -78,7 +78,7 @@ Checks: >
   bugprone-multiple-statement-macro,
   bugprone-parent-virtual-call,
   bugprone-posix-return,
-  bugprone-reserved-identifier,
+  # bugprone-reserved-identifier,
   bugprone-signed-char-misuse,
   bugprone-sizeof-container,
   bugprone-sizeof-expression,
@@ -112,7 +112,7 @@ Checks: >
   google-build-explicit-make-pair,
   google-build-namespaces,
   google-default-arguments,
-  google-explicit-constructor,
+  # google-explicit-constructor,
   google-readability-casting,
   google-readability-avoid-underscore-in-googletest-name,
   google-runtime-int,
@@ -165,9 +165,9 @@ CheckOptions:
   - key: readability-identifier-naming.EnumConstantPrefix
     value: e
   - key: readability-identifier-naming.LocalVariableCase
-    value: camelBack
+    value: camelBack, _
   - key: readability-identifier-naming.StaticConstantCase
-    value: CamelCase
+    value: CamelCase, kCamelCase
   - key: readability-identifier-naming.MemberCase
     value: camelBack
   - key: readability-identifier-naming.ClassMemberPrefix

@@ -1,7 +1,8 @@
 #pragma once
 
 #include "vultra/core/rhi/resource_indices.hpp"
-#include "vultra/core/rhi/vk/vulkan_include.hpp"
+
+#include <vulkan/vulkan.hpp>
 
 namespace vultra
 {

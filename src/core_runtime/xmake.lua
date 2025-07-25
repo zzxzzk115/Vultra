@@ -40,10 +40,8 @@ target("vultra")
     add_packages("fmt", "spdlog", "magic_enum", "entt", "glm", "stb", "vulkansdk", "vulkan-memory-allocator-hpp", "fg", { public = true })
     add_packages("tracy", "imgui", "libsdl3", "assimp", "spirv-cross", "glslang", "openxr-sdk", { public = true })
 
-    -- linux workaround for spirv-cross linking
-    if is_plat("linux") then
-        add_links("spirv-cross-core", "spirv-cross-glsl")
-    end
+    -- vulkan dynamic loader
+    add_defines("VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1", { public = true })
 
     -- tracy & tracky required defines
     -- default: tracy enabled, tracky disabled

@@ -135,7 +135,7 @@ namespace vultra
                 auto imageLayout = rhi::ImageLayout::eUndefined;
                 auto dstAccess   = rhi::Access::eNone;
 
-                if (bool(pipelineStage & PipelineStage::eTransfer))
+                if (static_cast<bool>(pipelineStage & PipelineStage::eTransfer))
                 {
                     imageLayout = rhi::ImageLayout::eTransferSrc;
                     dstAccess   = rhi::Access::eTransferRead;

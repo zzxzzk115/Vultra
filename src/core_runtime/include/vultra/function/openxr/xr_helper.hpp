@@ -2,20 +2,19 @@
 
 #include "vultra/core/base/base.hpp"
 #include "vultra/core/base/common_context.hpp"
-#include "vultra/core/rhi/vk/vulkan_include.hpp"
+
+#include <vulkan/vulkan.hpp>
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/glm.hpp>
 #include <glm/gtx/quaternion.hpp>
 
-// NOLINTBEGIN
 // OpenXR Headers
 #define XR_USE_GRAPHICS_API_VULKAN
 #include <openxr/openxr.h>
 #include <openxr/openxr_platform.h>
-// NOLINTEND
 
-#include "vultra/function/openxr/xr_utils.hpp"
+#include <iostream>
 
 inline void OpenXRDebugBreak()
 {

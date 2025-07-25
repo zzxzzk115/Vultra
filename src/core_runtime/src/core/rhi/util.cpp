@@ -32,20 +32,20 @@ namespace vultra
         void upload(RenderDevice&                        rd,
                     const Buffer&                        srcStagingBuffer,
                     std::span<const vk::BufferImageCopy> copyRegions,
-                    Texture&                             texture,
+                    Texture&                             dst,
                     const bool                           generateMipmaps)
         {
             rd.execute([&](CommandBuffer& cb) {
                 cb.copyBuffer(srcStagingBuffer,
-                              texture,
-                              copyRegions.empty() ? std::array {vk::BufferImageCopy(getDefaultRegion(texture))} :
+                              dst,
+                              copyRegions.empty() ? std::array {vk::BufferImageCopy(getDefaultRegion(dst))} :
                                                     copyRegions);
                 if (generateMipmaps)
-                    cb.generateMipmaps(texture);
+                    cb.generateMipmaps(dst);
 
                 cb.getBarrierBuilder().imageBarrier(
                     {
-                        .image     = texture,
+                        .image     = dst,
                         .newLayout = ImageLayout::eReadOnly,
                         .subresourceRange =
                             VkImageSubresourceRange {

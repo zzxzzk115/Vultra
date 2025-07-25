@@ -1,7 +1,13 @@
 #pragma once
 
 #include "vultra/core/rhi/texture.hpp"
-#include "vultra/function/openxr/xr_helper.hpp"
+
+// OpenXR Headers
+#define XR_USE_GRAPHICS_API_VULKAN
+#include <openxr/openxr.h>
+#include <openxr/openxr_platform.h>
+
+#include <glm/glm.hpp>
 
 namespace vultra
 {

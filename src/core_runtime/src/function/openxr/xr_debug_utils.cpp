@@ -1,4 +1,10 @@
 #include "vultra/function/openxr/xr_debug_utils.hpp"
+#include "vultra/core/base/common_context.hpp"
+#include "vultra/function/openxr/xr_helper.hpp"
+#include "vultra/function/openxr/xr_utils.hpp"
+
+#include <sstream>
+#include <string>
 
 XrBool32 OpenXRMessageCallbackFunction(XrDebugUtilsMessageSeverityFlagsEXT         messageSeverity,
                                        XrDebugUtilsMessageTypeFlagsEXT             messageType,
@@ -96,6 +102,7 @@ XrBool32 OpenXRMessageCallbackFunction(XrDebugUtilsMessageSeverityFlagsEXT      
     return XrBool32();
 }
 
+// NOLINTBEGIN
 XrDebugUtilsMessengerEXT CreateOpenXRDebugUtilsMessenger(XrInstance m_XrInstance)
 {
     // Fill out a XrDebugUtilsMessengerCreateInfoEXT structure specifying all severities and types.
@@ -138,3 +145,4 @@ void DestroyOpenXRDebugUtilsMessenger(XrInstance m_XrInstance, XrDebugUtilsMesse
     // Destroy the provided XrDebugUtilsMessengerEXT.
     OPENXR_CHECK(xrDestroyDebugUtilsMessengerEXT(debugUtilsMessenger), "Failed to destroy DebugUtilsMessenger.");
 }
+// NOLINTEND

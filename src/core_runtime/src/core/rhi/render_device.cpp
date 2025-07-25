@@ -448,7 +448,7 @@ namespace vultra
             std::size_t                          hash {0};
             std::vector<vk::DescriptorSetLayout> descriptorSetLayouts(kMinNumDescriptorSets);
 
-            for (auto [set, bindings] : vultra::enumerate(layoutInfo.descriptorSets))
+            for (const auto& [set, bindings] : vultra::enumerate(layoutInfo.descriptorSets))
             {
                 for (const auto& binding : bindings)
                 {
@@ -719,6 +719,7 @@ namespace vultra
 
             uint32_t    sdlExtensionCount = 0;
             const auto* sdlExtensions     = SDL_Vulkan_GetInstanceExtensions(&sdlExtensionCount);
+            requiredExtensions.reserve(sdlExtensionCount);
             for (uint32_t i = 0; i < sdlExtensionCount; ++i)
             {
                 requiredExtensions.push_back(sdlExtensions[i]);

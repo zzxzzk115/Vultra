@@ -1,7 +1,12 @@
 #include "vultra/function/openxr/xr_device.hpp"
+#include "vultra/core/base/common_context.hpp"
 #include "vultra/function/openxr/xr_debug_utils.hpp"
+#include "vultra/function/openxr/xr_helper.hpp"
+#include "vultra/function/openxr/xr_utils.hpp"
 
 #include <magic_enum/magic_enum.hpp>
+
+#include <fmt/format.h>
 
 namespace vultra
 {
@@ -117,15 +122,14 @@ namespace vultra
                         m_XrActiveInstanceExtensions.push_back(requestedInstanceExtension.c_str());
                         found = true;
                         VULTRA_CORE_TRACE("[OpenXR] Enabled EXT: {}-{}",
-                                           extensionProperty.extensionName,
-                                           extensionProperty.extensionVersion);
+                                          extensionProperty.extensionName,
+                                          extensionProperty.extensionVersion);
                         break;
                     }
                 }
                 if (!found)
                 {
-                    VULTRA_CORE_WARN("[OpenXR] Unsupported OpenXR instance extension: {0}",
-                                      requestedInstanceExtension);
+                    VULTRA_CORE_WARN("[OpenXR] Unsupported OpenXR instance extension: {0}", requestedInstanceExtension);
                 }
             }
 

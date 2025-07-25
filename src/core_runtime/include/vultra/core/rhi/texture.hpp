@@ -8,6 +8,8 @@
 #include "vultra/core/rhi/pixel_format.hpp"
 #include "vultra/core/rhi/texture_type.hpp"
 
+#include <vk_mem_alloc.hpp>
+
 #include <glm/ext/vector_uint3.hpp>
 
 #include <optional>
@@ -111,8 +113,8 @@ namespace vultra
                 Extent2D                m_Extent {};
                 uint32_t                m_Depth {0};
                 PixelFormat             m_PixelFormat {PixelFormat::eUndefined};
-                std::optional<uint32_t> m_NumMipLevels {};
-                std::optional<uint32_t> m_NumLayers {};
+                std::optional<uint32_t> m_NumMipLevels;
+                std::optional<uint32_t> m_NumLayers;
                 bool                    m_IsCubemap {false};
                 ImageUsage              m_UsageFlags {0};
 

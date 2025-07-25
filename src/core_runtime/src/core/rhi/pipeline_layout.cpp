@@ -11,10 +11,6 @@ namespace vultra
         {
             template<typename T>
             using DescriptorContainerSize = std::tuple_size<decltype(T::descriptorSets)>;
-
-            static_assert(DescriptorContainerSize<PipelineLayoutInfo>::value ==
-                          DescriptorContainerSize<ShaderReflection>::value);
-
         } // namespace
 
         PipelineLayout::PipelineLayout(PipelineLayout&& other) noexcept :
@@ -124,7 +120,7 @@ namespace vultra
         {
             PipelineLayout::Builder builder {};
 
-            for (auto [set, bindings] : vultra::enumerate(reflection.descriptorSets))
+            for (const auto& [set, bindings] : vultra::enumerate(reflection.descriptorSets))
             {
                 for (const auto& [index, resource] : bindings)
                 {

@@ -36,8 +36,8 @@ namespace vultra
             void create(const Desc&, void* allocator);
             void destroy(const Desc&, void* allocator);
 
-            void preRead(const Desc&, uint32_t flags, void* context);
-            void preWrite(const Desc&, uint32_t flags, void* context);
+            void preRead(const Desc&, uint32_t flags, void* ctx);
+            void preWrite(const Desc&, uint32_t flags, void* ctx);
 
             [[nodiscard]] static std::string toString(const Desc&);
 

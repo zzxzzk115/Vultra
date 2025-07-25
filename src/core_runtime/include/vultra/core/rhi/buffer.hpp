@@ -1,7 +1,8 @@
 #pragma once
 
 #include "vultra/core/rhi/barrier_scope.hpp"
-#include "vultra/core/rhi/vk/vulkan_include.hpp"
+
+#include <vk_mem_alloc.hpp>
 
 namespace vultra
 {

@@ -56,10 +56,10 @@ namespace vultra
             return *this;
         }
 
-        Window& Window::setCursorVisibility(const bool visible)
+        Window& Window::setCursorVisibility(const bool cursorVisibility)
         {
-            m_CursorVisibility = visible;
-            if (visible)
+            m_CursorVisibility = cursorVisibility;
+            if (cursorVisibility)
             {
                 SDL_ShowCursor();
             }
@@ -189,9 +189,9 @@ namespace vultra
             return *this;
         }
 
-        Window::Builder& Window::Builder::setCursorVisibility(bool visible)
+        Window::Builder& Window::Builder::setCursorVisibility(bool cursorVisibility)
         {
-            m_CursorVisibility = visible;
+            m_CursorVisibility = cursorVisibility;
             return *this;
         }
         Window::Builder& Window::Builder::setResizable(bool resizable)

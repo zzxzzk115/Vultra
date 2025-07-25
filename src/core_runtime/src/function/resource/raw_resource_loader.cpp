@@ -15,7 +15,7 @@ namespace vultra
         {
             stbi_set_flip_vertically_on_load(false);
 
-            auto file = stbi__fopen(p.string().c_str(), "rb");
+            auto* file = stbi__fopen(p.string().c_str(), "rb");
             if (!file)
             {
                 return std::unexpected {"Could not open the file."};
@@ -32,7 +32,7 @@ namespace vultra
             };
             std::unique_ptr<void, Deleter> pixels;
             {
-                auto ptr =
+                auto* ptr =
                     hdr ? static_cast<void*>(stbi_loadf_from_file(file, &width, &height, nullptr, STBI_rgb_alpha)) :
                           static_cast<void*>(stbi_load_from_file(file, &width, &height, nullptr, STBI_rgb_alpha));
                 pixels.reset(ptr);

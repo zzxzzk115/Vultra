@@ -48,25 +48,25 @@ namespace vultra
                 encoded, v.clearValue ? static_cast<uint32_t>(*v.clearValue) + 1 : 0, kClearOffset, kClearValueBits);
             return encoded;
         }
-        Attachment decodeAttachment(uint32_t v)
+        Attachment decodeAttachment(uint32_t bits)
         {
             Attachment out;
-            out.index = glm::bitfieldExtract(v, kAttachmentIndexOffset, kAttachmentIndexBits);
+            out.index = glm::bitfieldExtract(bits, kAttachmentIndexOffset, kAttachmentIndexBits);
 
             out.imageAspect =
-                static_cast<rhi::ImageAspect>(glm::bitfieldExtract(v, kImageAspectOffset, kImageAspectBits));
+                static_cast<rhi::ImageAspect>(glm::bitfieldExtract(bits, kImageAspectOffset, kImageAspectBits));
             assert(out.imageAspect != rhi::ImageAspect::eNone);
 
             // nullopt is encoded as '0'
-            if (const auto temp = glm::bitfieldExtract(v, kLayerOffset, kLayerBits); temp != 0)
+            if (const auto temp = glm::bitfieldExtract(bits, kLayerOffset, kLayerBits); temp != 0)
             {
                 out.layer = temp - 1;
             }
-            if (const auto temp = glm::bitfieldExtract(v, kFaceOffset, kFaceBits); temp != 0)
+            if (const auto temp = glm::bitfieldExtract(bits, kFaceOffset, kFaceBits); temp != 0)
             {
                 out.face = static_cast<rhi::CubeFace>(temp - 1);
             }
-            if (const auto temp = glm::bitfieldExtract(v, kClearOffset, kClearValueBits); temp != 0)
+            if (const auto temp = glm::bitfieldExtract(bits, kClearOffset, kClearValueBits); temp != 0)
             {
                 out.clearValue = static_cast<ClearValue>(temp - 1);
             }

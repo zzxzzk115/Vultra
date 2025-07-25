@@ -2,7 +2,13 @@
 
 #include "vultra/core/base/base.hpp"
 #include "vultra/core/base/scoped_enum_flags.hpp"
-#include "vultra/function/openxr/xr_helper.hpp"
+
+#include <vulkan/vulkan.hpp>
+
+// OpenXR Headers
+#define XR_USE_GRAPHICS_API_VULKAN
+#include <openxr/openxr.h>
+#include <openxr/openxr_platform.h>
 
 namespace vultra
 {
@@ -87,10 +93,12 @@ namespace vultra
             std::vector<XrEnvironmentBlendMode> m_EnvironmentBlendModes;
             XrEnvironmentBlendMode              m_EnvironmentBlendMode {XR_ENVIRONMENT_BLEND_MODE_MAX_ENUM};
 
+            // NOLINTBEGIN
             PFN_xrCreateVulkanInstanceKHR           xrCreateVulkanInstanceKHR {nullptr};
             PFN_xrCreateVulkanDeviceKHR             xrCreateVulkanDeviceKHR {nullptr};
             PFN_xrGetVulkanGraphicsRequirements2KHR xrGetVulkanGraphicsRequirements2KHR {nullptr};
             PFN_xrGetVulkanGraphicsDevice2KHR       xrGetVulkanGraphicsDevice2KHR {nullptr};
+            // NOLINTEND
 
             XRDeviceProperties m_Properties {};
         };

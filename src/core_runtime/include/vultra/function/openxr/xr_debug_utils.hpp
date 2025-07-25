@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vultra/function/openxr/xr_helper.hpp"
+#include <openxr/openxr.h>
 
 XrBool32 OpenXRMessageCallbackFunction(XrDebugUtilsMessageSeverityFlagsEXT         messageSeverity,
                                        XrDebugUtilsMessageTypeFlagsEXT             messageType,

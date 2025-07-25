@@ -1,11 +1,13 @@
 #include "vultra/function/openxr/xr_headset.hpp"
+#include "vultra/core/base/common_context.hpp"
 #include "vultra/core/rhi/extent2d.hpp"
 #include "vultra/core/rhi/render_device.hpp"
 #include "vultra/function/openxr/xr_device.hpp"
+#include "vultra/function/openxr/xr_helper.hpp"
 
 namespace
 {
-    constexpr XrReferenceSpaceType      spaceType {XR_REFERENCE_SPACE_TYPE_STAGE};
+    constexpr XrReferenceSpaceType     spaceType {XR_REFERENCE_SPACE_TYPE_STAGE};
     constexpr vultra::rhi::PixelFormat colorFormat {vultra::rhi::PixelFormat::eRGBA8_sRGB};
 } // namespace
 
@@ -224,7 +226,7 @@ namespace vultra
         {
             ZoneScopedN("XRHeadset::beginFrame");
 
-            const XrInstance instance = m_Device.m_XrInstance;
+            XrInstance instance = m_Device.m_XrInstance;
 
             // Poll OpenXR events
             XrEventDataBuffer buffer {};
@@ -364,7 +366,7 @@ namespace vultra
             if (XR_FAILED(result))
             {
                 VULTRA_CORE_ERROR("[XRHeadset] xrAcquireSwapchainImage failed: {}",
-                                   xrutils::resultToString(instance, result));
+                                  xrutils::resultToString(instance, result));
                 return BeginFrameResult::eError;
             }
 
@@ -376,7 +378,7 @@ namespace vultra
             if (XR_FAILED(result))
             {
                 VULTRA_CORE_ERROR("[XRHeadset] xrWaitSwapchainImage failed: {}",
-                                   xrutils::resultToString(instance, result));
+                                  xrutils::resultToString(instance, result));
                 return BeginFrameResult::eError;
             }
 
@@ -399,7 +401,7 @@ namespace vultra
             if (XR_FAILED(result))
             {
                 VULTRA_CORE_ERROR("[XRHeadset] xrReleaseSwapchainImage failed: {}",
-                                   xrutils::resultToString(m_Device.m_XrInstance, result));
+                                  xrutils::resultToString(m_Device.m_XrInstance, result));
                 return;
             }
 
@@ -426,7 +428,7 @@ namespace vultra
             if (XR_FAILED(result))
             {
                 VULTRA_CORE_ERROR("[XRHeadset] xrEndFrame failed: {}",
-                                   xrutils::resultToString(m_Device.m_XrInstance, result));
+                                  xrutils::resultToString(m_Device.m_XrInstance, result));
             }
         }
 
@@ -470,7 +472,7 @@ namespace vultra
             if (XR_FAILED(result))
             {
                 VULTRA_CORE_ERROR("[XRHeadset] xrBeginSession failed: {}",
-                                   xrutils::resultToString(m_Device.m_XrInstance, result));
+                                  xrutils::resultToString(m_Device.m_XrInstance, result));
                 return false;
             }
 
@@ -484,7 +486,7 @@ namespace vultra
             if (XR_FAILED(result))
             {
                 VULTRA_CORE_ERROR("[XRHeadset] xrEndSession failed: {}",
-                                   xrutils::resultToString(m_Device.m_XrInstance, result));
+                                  xrutils::resultToString(m_Device.m_XrInstance, result));
                 return false;
             }
 

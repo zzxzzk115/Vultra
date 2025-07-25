@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vultra/core/rhi/vk/vulkan_include.hpp"
+#include <vulkan/vulkan.hpp>
 
 #include <glm/ext/vector_uint2.hpp>
 

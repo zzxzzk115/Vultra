@@ -2,7 +2,8 @@
 
 #include "vultra/core/rhi/image_aspect.hpp"
 #include "vultra/core/rhi/resource_indices.hpp"
-#include "vultra/core/rhi/vk/vulkan_include.hpp"
+
+#include <vulkan/vulkan.hpp>
 
 #include <unordered_map>
 #include <variant>
