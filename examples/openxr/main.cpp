@@ -2,6 +2,7 @@
 #include <vultra/core/rhi/graphics_pipeline.hpp>
 #include <vultra/core/rhi/vertex_buffer.hpp>
 #include <vultra/function/app/xr_app.hpp>
+#include <vultra/function/openxr/xr_device.hpp>
 #include <vultra/function/openxr/xr_headset.hpp>
 
 #include <imgui.h>
@@ -89,7 +90,21 @@ public:
                                    .build(*m_RenderDevice);
     }
 
-    void onImGui() override { ImGui::ShowDemoWindow(); }
+    void onImGui() override
+    {
+        ImGui::Begin("OpenXR Example");
+        ImGui::Text("This is a simple OpenXR example with RHI triangle rendering.");
+
+        const auto& xrDevice             = m_RenderDevice->getXRDevice();
+        const auto& xrInstanceProperties = xrDevice->getXrInstanceProperties();
+        ImGui::Text("OpenXR Runtime        : %s", xrInstanceProperties.runtimeName);
+        ImGui::Text("OpenXR Runtime Version: %d.%d.%d",
+                    XR_VERSION_MAJOR(xrInstanceProperties.runtimeVersion),
+                    XR_VERSION_MINOR(xrInstanceProperties.runtimeVersion),
+                    XR_VERSION_PATCH(xrInstanceProperties.runtimeVersion));
+
+        ImGui::End();
+    }
 
     void onXrRender(rhi::CommandBuffer&                        cb,
                     openxr::XRHeadset::StereoRenderTargetView& xrRenderTargetView,
