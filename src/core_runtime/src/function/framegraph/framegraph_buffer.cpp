@@ -1,4 +1,5 @@
 #include "vultra/function/framegraph/framegraph_buffer.hpp"
+#include "vultra/core/base/base.hpp"
 #include "vultra/core/base/string_util.hpp"
 #include "vultra/core/rhi/command_buffer.hpp"
 #include "vultra/function/framegraph/framegraph_resource_access.hpp"
@@ -73,7 +74,7 @@ namespace vultra
             rc.commandBuffer.getBarrierBuilder().bufferBarrier({.buffer = *buffer}, dst);
         }
 
-        void FrameGraphBuffer::preWrite(const Desc& /*desc*/, uint32_t flags, void* ctx)
+        void FrameGraphBuffer::preWrite(const Desc& desc, uint32_t flags, void* ctx)
         {
             ZoneScopedN("+B");
 
@@ -90,7 +91,7 @@ namespace vultra
             }
             else
             {
-                assert(desc.type == BufferType::eStorageBuffer);
+                VULTRA_CUSTOM_ASSERT(desc.type == BufferType::eStorageBuffer);
                 dst.stageMask |= convert(pipelineStage);
                 dst.accessMask = rhi::Access::eShaderStorageRead | rhi::Access::eShaderStorageWrite;
 

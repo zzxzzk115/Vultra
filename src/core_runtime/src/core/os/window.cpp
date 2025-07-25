@@ -1,4 +1,5 @@
 #include "vultra/core/os/window.hpp"
+#include "vultra/core/base/base.hpp"
 #include "vultra/core/base/common_context.hpp"
 
 #include <SDL3/SDL.h>
@@ -134,7 +135,7 @@ namespace vultra
 
         vk::SurfaceKHR Window::createVulkanSurface(vk::Instance instance) const
         {
-            assert(m_SDL3WindowHandle);
+            VULTRA_CUSTOM_ASSERT(m_SDL3WindowHandle);
             VkSurfaceKHR surface {nullptr};
             if (!SDL_Vulkan_CreateSurface(m_SDL3WindowHandle, instance, nullptr, &surface))
             {

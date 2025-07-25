@@ -1,6 +1,8 @@
 # https://stackoverflow.com/questions/77872706/unable-using-c23-with-cmakeclangdmsvcvscode
 CompileFlags:
-  Add: ['-std:c++latest']
+  Add:
+    - $if(OS=="Windows") '-std:c++latest'
+    - $if(OS!="Windows") '-std=c++23'
 
 # https://github.com/clangd/clangd/discussions/1984
 If:                               # Apply this config conditionally
