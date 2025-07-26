@@ -33,6 +33,7 @@
 Prerequisites:
 - Git
 - XMake
+- Vulkan SDK
 - Visual Studio with MSVC if Windows
 - GCC or Clang if Linux/Unix
 - XCode with GCC or Apple Clang if macOS

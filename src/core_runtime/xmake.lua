@@ -6,7 +6,7 @@ add_requires("imgui v1.92.0-docking", {configs = { vulkan = true, sdl3 = true, w
 add_requires("assimp", {configs = {shared = true, debug = is_mode("debug")}})
 add_requires("spirv-cross", {configs = {shared = true, debug = is_mode("debug")}})
 add_requires("glslang", {configs = {shared = true, debug = is_mode("debug")}})
-add_requires("openxr-sdk", {configs = {shared = true, debug = is_mode("debug")}})
+add_requires("openxr", {configs = {shared = true, debug = is_mode("debug")}})
 
 -- target defination, name: vultra
 target("vultra")
@@ -24,7 +24,7 @@ target("vultra")
 
     -- add packages
     add_packages("fmt", "spdlog", "magic_enum", "entt", "glm", "stb", "vulkansdk", "vulkan-memory-allocator-hpp", "fg", { public = true })
-    add_packages("tracy", "imgui", "libsdl3", "assimp", "spirv-cross", "glslang", "openxr-sdk", { public = true })
+    add_packages("tracy", "imgui", "libsdl3", "assimp", "spirv-cross", "glslang", "openxr", { public = true })
 
     -- vulkan dynamic loader
     add_defines("VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1", { public = true })
