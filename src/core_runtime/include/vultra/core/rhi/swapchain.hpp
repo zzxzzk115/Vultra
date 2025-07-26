@@ -57,15 +57,17 @@ namespace vultra
             bool acquireNextImage(vk::Semaphore imageAcquired = nullptr);
 
         private:
-            Swapchain(vk::Instance, vk::PhysicalDevice, vk::Device, const os::Window&, Format, VerticalSync);
+            Swapchain(vk::Instance, vk::PhysicalDevice, vk::Device, os::Window*, Format, VerticalSync);
 
-            void createSurface(const os::Window&);
+            void createSurface();
 
             void create(Format, VerticalSync);
             void buildBuffers(Extent2D, PixelFormat);
             void destroy();
 
         private:
+            os::Window* m_Window {nullptr};
+
             vk::Instance       m_Instance {nullptr};
             vk::PhysicalDevice m_PhysicalDevice {nullptr};
             vk::Device         m_Device {nullptr};

@@ -67,7 +67,7 @@ Step-by-Step:
   > For debugging OpenXR programs without headsets, you may need Meta XR Simulator on Windows and macOS. On Linux, you can use Monado as the simulator.
 
 ## Future Work
-- [ ] Wayland support
+- [x] Wayland support
 - [ ] More powerful texture loader that supports KTX, KTX2, DDS, HDR and more
 - [ ] ECS-based scene management with EnTT
 - [ ] Modern Render Paths

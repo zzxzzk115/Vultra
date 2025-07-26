@@ -28,7 +28,6 @@ if is_plat("windows") then
     else
         set_runtimes("MD")
     end
-    add_syslinks("advapi32")
 else
     add_cxxflags("-fexceptions")
 end

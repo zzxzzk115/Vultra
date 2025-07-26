@@ -164,7 +164,7 @@ namespace vultra
         }
     }
 
-    void BaseApp::onResize(uint32_t width, uint32_t height) { m_Swapchain.recreate(); }
+    void BaseApp::onResize(uint32_t  /*width*/, uint32_t  /*height*/) { m_Swapchain.recreate(); }
 
     void BaseApp::onKeyPress(int key, int scancode, int mod)
     {

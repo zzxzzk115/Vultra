@@ -12,7 +12,7 @@ using fsec = std::chrono::duration<float>;
 #include <intrin.h> // for __debugbreak
 #define DEBUG_BREAK() __debugbreak()
 #elif defined(__GNUC__) || defined(__clang__)
-#include <csignal> // for raise
+#include <signal.h> // for raise & SIGTRAP
 #define DEBUG_BREAK() raise(SIGTRAP)
 #else
 #include <cstdlib>            // for abort

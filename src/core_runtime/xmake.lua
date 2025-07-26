@@ -1,21 +1,7 @@
 -- add requirements
 add_requires("fmt", { system = false })
 add_requires("spdlog", "magic_enum", "entt", "glm", "stb", "vulkansdk", "vulkan-memory-allocator-hpp", "fg")
-add_requires("tracy 0.11.1", {configs = {
-    on_demand = true,
-    enforce_callstack = true,
-    callstack = true,
-    broadcast = true,
-    code_transfer = true,
-    context_switch = true,
-    exit = true,
-    sampling = true,
-    verify = true,
-    vsync_capture = true,
-    frame_image = true,
-    system_tracing = true,
-    crash_handler = true
-}})
+add_requires("tracy 0.11.1", {configs = {on_demand = true}})
 add_requires("imgui v1.92.0-docking", {configs = { vulkan = true, sdl3 = true, wchar32 = true}})
 add_requires("assimp", {configs = {shared = true, debug = is_mode("debug")}})
 add_requires("spirv-cross", {configs = {shared = true, debug = is_mode("debug")}})

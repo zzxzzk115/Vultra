@@ -64,7 +64,7 @@ namespace vultra
 
             [[nodiscard]] size_t                  getSwapchainCount() const { return m_SwapchainImages.size(); }
             [[nodiscard]] StereoRenderTargetView& getSwapchainStereoRenderTargetView(size_t index);
-            [[nodiscard]] rhi::PixelFormat        getSwapchainPixelFormat() const;
+            [[nodiscard]] static rhi::PixelFormat getSwapchainPixelFormat();
 
         private:
             bool beginSession() const;

@@ -32,6 +32,7 @@ namespace vultra
 
             [[nodiscard]] std::string_view getTitle() const;
             [[nodiscard]] Extent           getExtent() const;
+            [[nodiscard]] Extent           getFrameBufferExtent() const;
             [[nodiscard]] Position         getPosition() const;
             [[nodiscard]] bool             getCursorVisibility() const;
             [[nodiscard]] bool             isResizable() const;
@@ -91,7 +92,7 @@ namespace vultra
 
         private:
             std::string m_Title;
-            Extent      m_Extent {};
+            Extent      m_Extent {}, m_FrameBufferExtent {};
             Position    m_Position {};
             bool        m_CursorVisibility {true};
             bool        m_Resizable {true};

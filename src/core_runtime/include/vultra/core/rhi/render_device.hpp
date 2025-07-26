@@ -102,7 +102,7 @@ namespace vultra
 
             [[nodiscard]] vk::FormatProperties getFormatProperties(PixelFormat) const;
 
-            [[nodiscard]] Swapchain createSwapchain(const os::Window&,
+            [[nodiscard]] Swapchain createSwapchain(os::Window&,
                                                     Swapchain::Format = Swapchain::Format::esRGB,
                                                     VerticalSync      = VerticalSync::eEnabled) const;
 
@@ -188,17 +188,17 @@ namespace vultra
             openxr::XRDevice* getXRDevice() const { return m_XRDevice; }
 
         private:
-            void createXRDevice();
-            void createInstance();
-            void selectPhysicalDevice();
-            void findGenericQueue();
-            void createLogicalDevice();
-            void createMemoryAllocator();
-            void createCommandPool();
-            void createPipelineCache();
-            void createDefaultDescriptorPool();
-            void createTracyContext();
-            void createTracky();
+            void        createXRDevice();
+            void        createInstance();
+            void        selectPhysicalDevice();
+            void        findGenericQueue();
+            void        createLogicalDevice();
+            void        createMemoryAllocator();
+            void        createCommandPool();
+            void        createPipelineCache();
+            void        createDefaultDescriptorPool();
+            void        createTracyContext();
+            static void createTracky();
 
             vk::CommandBuffer allocateCommandBuffer() const;
             vk::Sampler       createSampler(const SamplerInfo&) const;
