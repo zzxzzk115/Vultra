@@ -73,11 +73,12 @@ namespace vultra
         } // namespace
 
         Swapchain::Swapchain(Swapchain&& other) noexcept :
-            m_Instance(other.m_Instance), m_PhysicalDevice(other.m_PhysicalDevice), m_Device(other.m_Device),
-            m_Surface(other.m_Surface), m_Handle(other.m_Handle), m_Format(other.m_Format),
+            m_Window(other.m_Window), m_Instance(other.m_Instance), m_PhysicalDevice(other.m_PhysicalDevice),
+            m_Device(other.m_Device), m_Surface(other.m_Surface), m_Handle(other.m_Handle), m_Format(other.m_Format),
             m_VerticalSync(other.m_VerticalSync), m_Buffers(std::move(other.m_Buffers)),
             m_CurrentImageIndex(other.m_CurrentImageIndex)
         {
+            other.m_Window            = nullptr;
             other.m_Instance          = nullptr;
             other.m_PhysicalDevice    = nullptr;
             other.m_Device            = nullptr;
@@ -94,6 +95,7 @@ namespace vultra
             {
                 destroy();
 
+                std::swap(m_Window, rhs.m_Window);
                 std::swap(m_Instance, rhs.m_Instance);
                 std::swap(m_PhysicalDevice, rhs.m_PhysicalDevice);
                 std::swap(m_Device, rhs.m_Device);
@@ -161,19 +163,19 @@ namespace vultra
         Swapchain::Swapchain(const vk::Instance       instance,
                              const vk::PhysicalDevice physicalDevice,
                              const vk::Device         device,
-                             const os::Window&        window,
+                             os::Window*              window,
                              const Format             format,
                              const VerticalSync       vsync) :
-            m_Instance(instance), m_PhysicalDevice(physicalDevice), m_Device(device)
+            m_Instance(instance), m_PhysicalDevice(physicalDevice), m_Device(device), m_Window(window)
         {
-            createSurface(window);
+            createSurface();
             create(format, vsync);
         }
 
-        void Swapchain::createSurface(const os::Window& window)
+        void Swapchain::createSurface()
         {
             assert(m_Instance);
-            m_Surface = window.createVulkanSurface(m_Instance);
+            m_Surface = m_Window->createVulkanSurface(m_Instance);
         }
 
         void Swapchain::create(Format format, VerticalSync vsync)
@@ -181,52 +183,87 @@ namespace vultra
             const auto oldSwapchain = std::exchange(m_Handle, nullptr);
 
             const auto surfaceInfo = getSurfaceInfo(m_PhysicalDevice, m_Surface);
-            if (const auto extent = fromVk(surfaceInfo.capabilities.currentExtent); extent)
+
+            // Using framebuffer extent as the swapchain extent for Wayland compatibility
+            const auto fbExtent = m_Window->getFrameBufferExtent();
+            auto       extent   = rhi::Extent2D {static_cast<uint32_t>(fbExtent.x), static_cast<uint32_t>(fbExtent.y)};
+
+            if (extent != fromVk(surfaceInfo.capabilities.currentExtent))
             {
-                const vk::SurfaceFormatKHR kSurfaceDefaultFormat {
-                    format == Format::eLinear ? vk::Format::eB8G8R8A8Unorm : vk::Format::eB8G8R8A8Srgb,
-                    vk::ColorSpaceKHR::eSrgbNonlinear,
-                };
-
-                // Check if the present mode is supported
-                auto presentMode = getPresentMode(vsync);
-                if (std::find(surfaceInfo.presentModes.begin(), surfaceInfo.presentModes.end(), presentMode) ==
-                    surfaceInfo.presentModes.end())
-                {
-                    VULTRA_CLIENT_WARN(
-                        "[Swapchain] Requested present mode ({}) is not supported, falling back to FIFO",
-                        magic_enum::enum_name(presentMode));
-                    presentMode = vk::PresentModeKHR::eFifo;
-                }
-
-                vk::SwapchainCreateInfoKHR swapchainCreateInfo {};
-                swapchainCreateInfo.surface       = m_Surface;
-                swapchainCreateInfo.minImageCount = std::clamp(
-                    3u,
-                    surfaceInfo.capabilities.minImageCount,
-                    surfaceInfo.capabilities.maxImageCount > 0 ? surfaceInfo.capabilities.maxImageCount : 8u);
-                swapchainCreateInfo.imageFormat      = kSurfaceDefaultFormat.format;
-                swapchainCreateInfo.imageColorSpace  = kSurfaceDefaultFormat.colorSpace;
-                swapchainCreateInfo.imageExtent      = static_cast<vk::Extent2D>(extent);
-                swapchainCreateInfo.imageArrayLayers = 1; // No Stereo
-                swapchainCreateInfo.imageUsage =
-                    vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferSrc |
-                    vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eColorAttachment;
-                swapchainCreateInfo.imageSharingMode = vk::SharingMode::eExclusive;
-                swapchainCreateInfo.preTransform     = vk::SurfaceTransformFlagBitsKHR::eIdentity;
-                swapchainCreateInfo.compositeAlpha   = vk::CompositeAlphaFlagBitsKHR::eOpaque;
-                swapchainCreateInfo.presentMode      = presentMode;
-                swapchainCreateInfo.clipped          = true;
-                swapchainCreateInfo.oldSwapchain     = oldSwapchain;
-
-                VK_CHECK(m_Device.createSwapchainKHR(&swapchainCreateInfo, nullptr, &m_Handle),
-                         "Swapchain",
-                         "Failed to create swapchain");
-
-                buildBuffers(extent, static_cast<PixelFormat>(swapchainCreateInfo.imageFormat));
-                m_Format       = format;
-                m_VerticalSync = vsync;
+                VULTRA_CORE_WARN("[Swapchain] Requested extent ({}, {}) does not match current extent ({}, {}), "
+                                 "If you are using Wayland, this is expected, since the default current extent is "
+                                 "(UINT32_MAX, UINT32_MAX).",
+                                 extent.width,
+                                 extent.height,
+                                 surfaceInfo.capabilities.currentExtent.width,
+                                 surfaceInfo.capabilities.currentExtent.height);
             }
+
+            if (extent.width > surfaceInfo.capabilities.maxImageExtent.width ||
+                extent.height > surfaceInfo.capabilities.maxImageExtent.height)
+            {
+                VULTRA_CORE_WARN("[Swapchain] Requested extent ({}, {}) exceeds maximum ({}, {}), "
+                                 "clamping to maximum",
+                                 extent.width,
+                                 extent.height,
+                                 surfaceInfo.capabilities.maxImageExtent.width,
+                                 surfaceInfo.capabilities.maxImageExtent.height);
+                extent = fromVk(surfaceInfo.capabilities.maxImageExtent);
+            }
+            else if (extent.width < surfaceInfo.capabilities.minImageExtent.width ||
+                     extent.height < surfaceInfo.capabilities.minImageExtent.height)
+            {
+                VULTRA_CORE_WARN("[Swapchain] Requested extent ({}, {}) is smaller than minimum ({}, {}), "
+                                 "clamping to minimum",
+                                 extent.width,
+                                 extent.height,
+                                 surfaceInfo.capabilities.minImageExtent.width,
+                                 surfaceInfo.capabilities.minImageExtent.height);
+                extent = fromVk(surfaceInfo.capabilities.minImageExtent);
+            }
+
+            const vk::SurfaceFormatKHR kSurfaceDefaultFormat {
+                format == Format::eLinear ? vk::Format::eB8G8R8A8Unorm : vk::Format::eB8G8R8A8Srgb,
+                vk::ColorSpaceKHR::eSrgbNonlinear,
+            };
+
+            // Check if the present mode is supported
+            auto presentMode = getPresentMode(vsync);
+            if (std::find(surfaceInfo.presentModes.begin(), surfaceInfo.presentModes.end(), presentMode) ==
+                surfaceInfo.presentModes.end())
+            {
+                VULTRA_CORE_WARN("[Swapchain] Requested present mode ({}) is not supported, falling back to FIFO",
+                                 magic_enum::enum_name(presentMode));
+                presentMode = vk::PresentModeKHR::eFifo;
+            }
+
+            vk::SwapchainCreateInfoKHR swapchainCreateInfo {};
+            swapchainCreateInfo.surface = m_Surface;
+            swapchainCreateInfo.minImageCount =
+                std::clamp(3u,
+                           surfaceInfo.capabilities.minImageCount,
+                           surfaceInfo.capabilities.maxImageCount > 0 ? surfaceInfo.capabilities.maxImageCount : 8u);
+            swapchainCreateInfo.imageFormat      = kSurfaceDefaultFormat.format;
+            swapchainCreateInfo.imageColorSpace  = kSurfaceDefaultFormat.colorSpace;
+            swapchainCreateInfo.imageExtent      = static_cast<vk::Extent2D>(extent);
+            swapchainCreateInfo.imageArrayLayers = 1; // No Stereo
+            swapchainCreateInfo.imageUsage = vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferSrc |
+                                             vk::ImageUsageFlagBits::eTransferDst |
+                                             vk::ImageUsageFlagBits::eColorAttachment;
+            swapchainCreateInfo.imageSharingMode = vk::SharingMode::eExclusive;
+            swapchainCreateInfo.preTransform     = vk::SurfaceTransformFlagBitsKHR::eIdentity;
+            swapchainCreateInfo.compositeAlpha   = vk::CompositeAlphaFlagBitsKHR::eOpaque;
+            swapchainCreateInfo.presentMode      = presentMode;
+            swapchainCreateInfo.clipped          = true;
+            swapchainCreateInfo.oldSwapchain     = oldSwapchain;
+
+            VK_CHECK(m_Device.createSwapchainKHR(&swapchainCreateInfo, nullptr, &m_Handle),
+                     "Swapchain",
+                     "Failed to create swapchain");
+
+            buildBuffers(extent, static_cast<PixelFormat>(swapchainCreateInfo.imageFormat));
+            m_Format       = format;
+            m_VerticalSync = vsync;
 
             if (oldSwapchain)
             {
@@ -272,6 +309,8 @@ namespace vultra
                 m_Instance.destroySurfaceKHR(m_Surface);
                 m_Surface = nullptr;
             }
+
+            m_Window = nullptr;
 
             m_Instance       = nullptr;
             m_PhysicalDevice = nullptr;

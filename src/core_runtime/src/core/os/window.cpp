@@ -3,6 +3,7 @@
 #include "vultra/core/base/common_context.hpp"
 
 #include <SDL3/SDL.h>
+#include <SDL3/SDL_events.h>
 #include <SDL3/SDL_vulkan.h>
 
 namespace vultra
@@ -89,6 +90,8 @@ namespace vultra
 
         Window::Extent Window::getExtent() const { return m_Extent; }
 
+        Window::Extent Window::getFrameBufferExtent() const { return m_FrameBufferExtent; }
+
         Window::Position Window::getPosition() const { return m_Position; }
 
         bool Window::getCursorVisibility() const { return m_CursorVisibility; }
@@ -115,12 +118,12 @@ namespace vultra
 #elif defined(SDL_PLATFORM_LINUX)
             if (SDL_strcmp(SDL_GetCurrentVideoDriver(), "x11") == 0)
             {
-                return (void*)(uintptr_t)SDL_GetNumberProperty(
-                    SDL_GetWindowProperties(m_SDL3WindowHandle), SDL_PROP_WINDOW_X11_WINDOW_NUMBER, 0);
+                return reinterpret_cast<void*>(static_cast<uintptr_t>(SDL_GetNumberProperty(
+                    SDL_GetWindowProperties(m_SDL3WindowHandle), SDL_PROP_WINDOW_X11_WINDOW_NUMBER, 0)));
             }
             else if (SDL_strcmp(SDL_GetCurrentVideoDriver(), "wayland") == 0)
             {
-                return (void*)(uintptr_t)SDL_GetPointerProperty(
+                return SDL_GetPointerProperty(
                     SDL_GetWindowProperties(m_SDL3WindowHandle), SDL_PROP_WINDOW_WAYLAND_SURFACE_POINTER, nullptr);
             }
             else
@@ -159,6 +162,23 @@ namespace vultra
                 if (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED &&
                     event.window.windowID == SDL_GetWindowID(m_SDL3WindowHandle))
                     m_IsMinimized = true;
+
+                // Update the window extent if it has changed
+                if (event.type == SDL_EVENT_WINDOW_RESIZED)
+                {
+                    m_Extent.x = event.window.data1;
+                    m_Extent.y = event.window.data2;
+
+                    // Also update the framebuffer extent
+                    SDL_GetWindowSizeInPixels(m_SDL3WindowHandle, &m_FrameBufferExtent.x, &m_FrameBufferExtent.y);
+                }
+
+                // Update the window position if it has changed
+                if (event.type == SDL_EVENT_WINDOW_MOVED)
+                {
+                    m_Position.x = event.window.data1;
+                    m_Position.y = event.window.data2;
+                }
 
                 publish<GeneralWindowEvent>({event.type, event});
             }
@@ -261,6 +281,12 @@ namespace vultra
                 setPosition(m_Position);
             }
             setCursorVisibility(m_CursorVisibility);
+
+            // Setup framebuffer extent,
+            // Why we need this?
+            // Wayland & High DPI support.
+            // https://github.com/ocornut/imgui/issues/8761
+            SDL_GetWindowSizeInPixels(m_SDL3WindowHandle, &m_FrameBufferExtent.x, &m_FrameBufferExtent.y);
         }
     } // namespace os
 } // namespace vultra

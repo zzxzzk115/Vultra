@@ -257,7 +257,7 @@ namespace vultra
             return props;
         }
 
-        Swapchain RenderDevice::createSwapchain(const os::Window&       window,
+        Swapchain RenderDevice::createSwapchain(os::Window&             window,
                                                 const Swapchain::Format format,
                                                 const VerticalSync      vsync) const
         {
@@ -267,7 +267,7 @@ namespace vultra
                 m_Instance,
                 m_PhysicalDevice,
                 m_Device,
-                window,
+                &window,
                 format,
                 vsync,
             };
