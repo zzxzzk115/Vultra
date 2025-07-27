@@ -34,8 +34,12 @@ namespace vultra
                         return resource::loadTextureSTB(p, rd);
 
                     case ".ktx"_hs:
+                    case ".dds"_hs:
+                        return resource::loadTextureKTX_DDS(p, rd);
+
                     case ".ktx2"_hs:
-                        throw std::runtime_error("Unsupported KTX format.");
+                        throw std::runtime_error("Unsupported KTX2 format.");
+
                     default:
                         break;
                 }

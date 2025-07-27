@@ -47,6 +47,9 @@ add_rules("plugin.compile_commands.autoupdate", {outputdir = ".vscode"})
 -- add repositories
 add_repositories("my-xmake-repo https://github.com/zzxzzk115/xmake-repo.git backup")
 
+-- include external libraries
+includes("external")
+
 -- include source
 includes("src")
 

@@ -22,6 +22,9 @@ target("vultra")
     -- add source files
     add_files("src/**.cpp")
 
+    -- add deps
+    add_deps("dds-ktx")
+
     -- add packages
     add_packages("fmt", "spdlog", "magic_enum", "entt", "glm", "stb", "vulkansdk", "vulkan-memory-allocator-hpp", "fg", { public = true })
     add_packages("tracy", "imgui", "libsdl3", "assimp", "spirv-cross", "glslang", "openxr", { public = true })
