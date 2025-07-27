@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vultra/function/renderer/texture_resource_handle.hpp"
+#include "vultra/function/renderer/texture_resource.hpp"
 
 namespace vultra
 {

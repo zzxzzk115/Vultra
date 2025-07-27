@@ -1,6 +1,7 @@
 #pragma once
 
 #include "vultra/function/renderer/texture_loader.hpp"
+#include "vultra/function/renderer/texture_resource_handle.hpp"
 
 #include <entt/resource/cache.hpp>
 
