@@ -13,13 +13,17 @@ namespace vultra
         {
             eUndefined = 0,
 
-            //
-            // 8 bits per component:
-            //
+        //
+        // 8 bits per component:
+        //
 
-            // -- Normalized float:
+        // -- Normalized float:
 
-            eA8_UNorm      = VK_FORMAT_A8_UNORM,
+#if VK_VERSION_1_3
+            eA8_UNorm = VK_FORMAT_A8_UNORM_KHR,
+#else
+            eA8_UNorm = VK_FORMAT_A8_UNORM,
+#endif
             eR8_UNorm      = VK_FORMAT_R8_UNORM,
             eRG8_UNorm     = VK_FORMAT_R8G8_UNORM,
             eRGBA8_UNorm   = VK_FORMAT_R8G8B8A8_UNORM,
