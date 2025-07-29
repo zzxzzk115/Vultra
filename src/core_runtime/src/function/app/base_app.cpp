@@ -35,6 +35,7 @@ namespace vultra
     } // namespace
 
     BaseApp::BaseApp(std::span<char*>, const AppConfig& cfg) :
+        m_RenderDocAPI(std::make_unique<RenderDocAPI>()),
         m_Window(os::Window::Builder {}.setExtent({cfg.width, cfg.height}).build()),
         m_RenderDevice(std::make_unique<rhi::RenderDevice>(cfg.renderDeviceFeatureFlag))
     {
@@ -110,11 +111,30 @@ namespace vultra
                 }
                 {
                     ZoneScopedN("[App] Render");
+
+                    if (m_WantCaptureFrame)
+                    {
+                        if (!m_RenderDocAPI->isTargetControlConnected())
+                        {
+                            m_RenderDocAPI->launchReplayUI();
+                        }
+
+                        m_RenderDocAPI->startFrameCapture();
+                        m_RenderDocAPI->setCaptureTitle("Vultra Frame Capture #unknown");
+                    }
+
                     auto& cb = m_FrameController.beginFrame();
 
                     ok = onRender(cb, m_FrameController.getCurrentTarget(), deltaTime);
 
                     m_FrameController.endFrame();
+
+                    if (m_WantCaptureFrame)
+                    {
+                        m_RenderDocAPI->endFrameCapture();
+                        m_RenderDocAPI->showReplayUI();
+                        m_WantCaptureFrame = false;
+                    }
                 }
                 {
                     ZoneScopedN("[App] PostRender");
@@ -164,7 +184,7 @@ namespace vultra
         }
     }
 
-    void BaseApp::onResize(uint32_t  /*width*/, uint32_t  /*height*/) { m_Swapchain.recreate(); }
+    void BaseApp::onResize(uint32_t /*width*/, uint32_t /*height*/) { m_Swapchain.recreate(); }
 
     void BaseApp::onKeyPress(int key, int scancode, int mod)
     {

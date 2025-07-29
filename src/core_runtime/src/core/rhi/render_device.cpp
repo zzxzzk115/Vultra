@@ -9,6 +9,8 @@
 #include <SDL3/SDL_vulkan.h>
 #include <glm/common.hpp>
 
+#include <set>
+
 VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 
 namespace std
@@ -73,8 +75,10 @@ namespace std
 namespace
 {
 #if _DEBUG
-    const char* validationLayers[] = {"VK_LAYER_KHRONOS_validation", "VK_LAYER_KHRONOS_synchronization2"};
+    const char* validationLayers[] = {"VK_LAYER_KHRONOS_validation"};
 #endif
+
+    const char* requestLayers[] = {"VK_LAYER_KHRONOS_synchronization2"};
 
     VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(vk::DebugUtilsMessageSeverityFlagBitsEXT      messageSeverity,
                                                  vk::DebugUtilsMessageTypeFlagsEXT             messageType,
@@ -758,22 +762,47 @@ namespace vultra
                 }
             }
 
-#if _DEBUG
-            bool found  = false;
-            auto layers = vk::enumerateInstanceLayerProperties();
+            std::vector<const char*> enabledLayers;
+            std::set<const char*>    layerSet;
+            bool                     found  = false;
+            auto                     layers = vk::enumerateInstanceLayerProperties();
             for (auto& layer : layers)
             {
-                if (strcmp(validationLayers[0], layer.layerName) == 0)
-                {
-                    found = true;
-                    createInfo.setPEnabledLayerNames(validationLayers);
-                }
                 VULTRA_CORE_TRACE("[RenderDevice] Found layer: {} \"{}\" {}-{}",
                                   layer.layerName.data(),
                                   layer.description.data(),
                                   layer.implementationVersion,
                                   layer.specVersion);
+
+                for (const auto& requestLayer : requestLayers)
+                {
+                    if (strcmp(requestLayer, layer.layerName) == 0)
+                    {
+                        if (layerSet.count(requestLayer) == 0)
+                        {
+                            enabledLayers.push_back(layer.layerName);
+                            VULTRA_CORE_TRACE("[RenderDevice] Enabling layer: {} \"{}\" {}-{}",
+                                              layer.layerName.data(),
+                                              layer.description.data(),
+                                              layer.implementationVersion,
+                                              layer.specVersion);
+                            layerSet.insert(requestLayer);
+                        }
+                    }
+                }
+#if _DEBUG
+                if (strcmp(validationLayers[0], layer.layerName) == 0)
+                {
+                    if (!found)
+                    {
+                        found = true;
+                        enabledLayers.push_back(layer.layerName);
+                    }
+                }
+#endif
             }
+
+#if _DEBUG
             if (!found)
             {
                 VULTRA_CORE_ERROR("[RenderDevice] Cannot find Validation Layer");
@@ -781,6 +810,11 @@ namespace vultra
             }
 #endif
 
+#ifndef VULTRA_ENABLE_RENDERDOC
+            // If RenderDoc is enabled, we don't need to enable those layers.
+            createInfo.enabledLayerCount   = static_cast<uint32_t>(enabledLayers.size());
+            createInfo.ppEnabledLayerNames = enabledLayers.data();
+#endif
             createInfo.enabledExtensionCount   = static_cast<uint32_t>(extensions.size());
             createInfo.ppEnabledExtensionNames = extensions.data();
 

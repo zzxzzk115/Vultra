@@ -86,13 +86,23 @@ public:
                                  .build(*m_RenderDevice);
     }
 
-    void onImGui() override { ImGui::ShowDemoWindow(); }
+    void onImGui() override
+    {
+        ImGui::ShowDemoWindow();
+        ImGui::Begin("Example Window");
+        ImGui::Text("Hello, world!");
+        ImGui::Button("Capture One Frame");
+        if (ImGui::IsItemClicked())
+        {
+            m_WantCaptureFrame = true;
+        }
+        ImGui::End();
+    }
 
     bool onRender(rhi::CommandBuffer& cb, const rhi::RenderTargetView rtv, const fsec dt) override
     {
-        auto& [frameIndex, target] = rtv;
+        const auto& [frameIndex, target] = rtv;
         rhi::prepareForAttachment(cb, target, false);
-
         {
             RHI_GPU_ZONE(cb, "RHI Triangle");
             cb.beginRendering({

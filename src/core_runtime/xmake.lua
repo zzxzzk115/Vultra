@@ -23,7 +23,7 @@ target("vultra")
     add_files("src/**.cpp")
 
     -- add deps
-    add_deps("dds-ktx")
+    add_deps("dds-ktx", "renderdoc")
 
     -- add packages
     add_packages("fmt", "spdlog", "magic_enum", "entt", "glm", "stb", "vulkansdk", "vulkan-memory-allocator-hpp", "fg", { public = true })
@@ -42,7 +42,7 @@ target("vultra")
     add_defines("FMT_UNICODE=0", { public = true })
 
     if is_mode("debug") then
-        add_defines("_DEBUG", { public = true })
+        add_defines("_DEBUG", "VULTRA_ENABLE_RENDERDOC", { public = true })
     else
         add_defines("NDEBUG", { public = true })
     end

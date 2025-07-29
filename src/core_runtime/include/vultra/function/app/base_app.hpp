@@ -3,6 +3,7 @@
 #include "vultra/core/base/common_context.hpp"
 #include "vultra/core/base/logger.hpp"
 #include "vultra/core/os/window.hpp"
+#include "vultra/core/profiling/renderdoc_api.hpp"
 #include "vultra/core/rhi/frame_controller.hpp"
 #include "vultra/core/rhi/frame_index.hpp"
 #include "vultra/core/rhi/render_device.hpp"
@@ -57,7 +58,9 @@ namespace vultra
 
     protected:
         bool m_IsRunning {true};
+        bool m_WantCaptureFrame {false};
 
+        std::unique_ptr<RenderDocAPI>      m_RenderDocAPI {nullptr};
         os::Window                         m_Window;
         std::unique_ptr<rhi::RenderDevice> m_RenderDevice {nullptr};
         rhi::Swapchain                     m_Swapchain;
