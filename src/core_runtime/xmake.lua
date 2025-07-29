@@ -8,7 +8,10 @@ rule("vulkansdk")
         local vulkansdk = find_vulkansdk()
         if vulkansdk then
             target:add("runevs", "PATH", vulkansdk.bindir)
-            target:add("includedirs", vulkansdk.includedirs)
+
+            -- We don't need to add the include directories for vulkan headers
+            -- Instead, we rely on Vulkan-Headers
+            -- target:add("includedirs", vulkansdk.includedirs)
 
             local utils = {}
             table.insert(utils, target:is_plat("windows") and "vulkan-1" or "vulkan")
@@ -28,7 +31,7 @@ rule_end()
 
 -- add requirements
 add_requires("fmt", { system = false })
-add_requires("spdlog", "magic_enum", "entt", "glm", "stb", "vulkan-memory-allocator-hpp", "fg")
+add_requires("spdlog", "magic_enum", "entt", "glm", "stb", "vulkan-headers 1.4.309+0", "vulkan-memory-allocator-hpp", "fg")
 add_requires("tracy 0.11.1", {configs = {on_demand = true}})
 add_requires("imgui v1.92.0-docking", {configs = { vulkan = true, sdl3 = true, wchar32 = true}})
 add_requires("assimp", {configs = {shared = true, debug = is_mode("debug")}})
@@ -58,7 +61,7 @@ target("vultra")
     add_rules("vulkansdk")
 
     -- add packages
-    add_packages("fmt", "spdlog", "magic_enum", "entt", "glm", "stb", "vulkan-memory-allocator-hpp", "fg", { public = true })
+    add_packages("fmt", "spdlog", "magic_enum", "entt", "glm", "stb", "vulkan-headers", "vulkan-memory-allocator-hpp", "fg", { public = true })
     add_packages("tracy", "imgui", "libsdl3", "assimp", "spirv-cross", "glslang", "openxr", { public = true })
 
     -- vulkan dynamic loader
