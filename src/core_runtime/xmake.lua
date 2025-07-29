@@ -18,7 +18,9 @@ rule("vulkansdk")
                     wprint(format("The library %s for %s is not found!", util, target:arch()))
                     return
                 end
-                target:add("links", path.join(vulkansdk.linkdirs[1], util .. (target:is_plat("windows") and ".lib" or ".so")), { public = true })
+                -- add vulkan library
+                lib_name = target:is_plat("windows") and util or "lib" .. util
+                target:add("links", path.join(vulkansdk.linkdirs[1], lib_name .. (target:is_plat("windows") and ".lib" or ".so")), { public = true })
             end
         end
     end)
