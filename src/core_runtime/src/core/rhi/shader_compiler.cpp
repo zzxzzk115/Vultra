@@ -149,13 +149,13 @@ namespace vultra
                 explicit MyIncluder(const std::filesystem::path& shaderRootPath) : m_ShaderRootPath(shaderRootPath) {}
 
                 IncludeResult*
-                includeSystem(const char* headerName, const char* includerName, size_t inclusionDepth) override
+                includeSystem(const char*  /*headerName*/, const char*  /*includerName*/, size_t  /*inclusionDepth*/) override
                 {
                     return nullptr;
                 }
 
                 IncludeResult*
-                includeLocal(const char* headerName, const char* includerName, size_t inclusionDepth) override
+                includeLocal(const char* headerName, const char* includerName, size_t  /*inclusionDepth*/) override
                 {
                     return readFile(headerName, includerName);
                 }
