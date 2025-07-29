@@ -1,12 +1,39 @@
+-- workaround for only linking vulkan library rather than glslang, spirv-cross, etc.
+-- https://github.com/xmake-io/xmake-repo/issues/3962#issuecomment-2096205856
+rule("vulkansdk")
+    on_config(function (target)
+        import("lib.detect.find_library")
+        import("detect.sdks.find_vulkansdk")
+
+        local vulkansdk = find_vulkansdk()
+        if vulkansdk then
+            target:add("runevs", "PATH", vulkansdk.bindir)
+            target:add("includedirs", vulkansdk.includedirs)
+
+            local utils = {}
+            table.insert(utils, target:is_plat("windows") and "vulkan-1" or "vulkan")
+    
+            for _, util in ipairs(utils) do
+                if not find_library(util, vulkansdk.linkdirs) then
+                    wprint(format("The library %s for %s is not found!", util, target:arch()))
+                    return
+                end
+                target:add("links", path.join(vulkansdk.linkdirs[1], util .. (target:is_plat("windows") and ".lib" or ".so")), { public = true })
+            end
+        end
+    end)
+rule_end()
+
 -- add requirements
 add_requires("fmt", { system = false })
-add_requires("spdlog", "magic_enum", "entt", "glm", "stb", "vulkansdk", "vulkan-memory-allocator-hpp", "fg")
+add_requires("spdlog", "magic_enum", "entt", "glm", "stb", "vulkan-memory-allocator-hpp", "fg")
 add_requires("tracy 0.11.1", {configs = {on_demand = true}})
 add_requires("imgui v1.92.0-docking", {configs = { vulkan = true, sdl3 = true, wchar32 = true}})
 add_requires("assimp", {configs = {shared = true, debug = is_mode("debug")}})
-add_requires("spirv-cross", {configs = {shared = true, debug = is_mode("debug")}})
-add_requires("glslang", {configs = {shared = true, debug = is_mode("debug")}})
 add_requires("openxr", {configs = {shared = true, debug = is_mode("debug")}})
+-- note: spirv-cross & glslang must require the same vulkan sdk version
+add_requires("spirv-cross vulkan-sdk-1.4.309", {configs = { shared = true, debug = is_mode("debug") }})
+add_requires("glslang 1.4.309+0", {configs = { debug = is_mode("debug")}, system = false})
 
 -- target defination, name: vultra
 target("vultra")
@@ -25,8 +52,11 @@ target("vultra")
     -- add deps
     add_deps("dds-ktx", "renderdoc")
 
+    -- add rules
+    add_rules("vulkansdk")
+
     -- add packages
-    add_packages("fmt", "spdlog", "magic_enum", "entt", "glm", "stb", "vulkansdk", "vulkan-memory-allocator-hpp", "fg", { public = true })
+    add_packages("fmt", "spdlog", "magic_enum", "entt", "glm", "stb", "vulkan-memory-allocator-hpp", "fg", { public = true })
     add_packages("tracy", "imgui", "libsdl3", "assimp", "spirv-cross", "glslang", "openxr", { public = true })
 
     -- vulkan dynamic loader
