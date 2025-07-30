@@ -28,7 +28,7 @@ namespace vultra
             [[nodiscard]] FrameIndex::ValueType size() const;
             [[nodiscard]] RenderTargetView      getCurrentTarget() const;
 
-            CommandBuffer&   beginFrame();
+            CommandBuffer&   beginFrame(bool& valid);
             FrameController& endFrame();
 
             void present();

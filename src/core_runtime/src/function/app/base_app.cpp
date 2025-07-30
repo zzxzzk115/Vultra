@@ -123,7 +123,12 @@ namespace vultra
                         m_RenderDocAPI->setCaptureTitle("Vultra Frame Capture #unknown");
                     }
 
-                    auto& cb = m_FrameController.beginFrame();
+                    bool valid = false;
+                    auto& cb = m_FrameController.beginFrame(valid);
+                    if (!valid)
+                    {
+                        continue;
+                    }
 
                     ok = onRender(cb, m_FrameController.getCurrentTarget(), deltaTime);
 
@@ -180,7 +185,11 @@ namespace vultra
 
         if (event.type == SDL_EVENT_WINDOW_RESIZED)
         {
-            onResize(event.internalEvent.window.data1, event.internalEvent.window.data2);
+            // Only resize for Wayland, as X11 handles it automatically
+            if (m_Window.getDriverType() == os::Window::DriverType::eWayland)
+            {
+                onResize(event.internalEvent.window.data1, event.internalEvent.window.data2);
+            }
         }
     }
 

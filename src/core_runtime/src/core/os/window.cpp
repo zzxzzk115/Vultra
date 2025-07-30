@@ -136,6 +136,30 @@ namespace vultra
 #endif
         }
 
+        Window::DriverType Window::getDriverType()
+        {
+#if defined(SDL_PLATFORM_WIN32)
+            return DriverType::eWin32;
+#elif defined(SDL_PLATFORM_MACOS)
+            return DriverType::eCocoa;
+#elif defined(SDL_PLATFORM_LINUX)
+            if (SDL_strcmp(SDL_GetCurrentVideoDriver(), "x11") == 0)
+            {
+                return DriverType::eX11;
+            }
+            else if (SDL_strcmp(SDL_GetCurrentVideoDriver(), "wayland") == 0)
+            {
+                return DriverType::eWayland;
+            }
+            else
+            {
+                throw std::logic_error("Unknown window system");
+            }
+#elif defined(SDL_PLATFORM_IOS)
+            return DriverType::eUIKit;
+#endif
+        }
+
         vk::SurfaceKHR Window::createVulkanSurface(vk::Instance instance) const
         {
             VULTRA_CUSTOM_ASSERT(m_SDL3WindowHandle);

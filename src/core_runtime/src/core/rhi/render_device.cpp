@@ -1294,7 +1294,8 @@ namespace vultra
             presentInfo.pSwapchains        = &swapchain.m_Handle;
             presentInfo.pImageIndices      = &swapchain.m_CurrentImageIndex;
 
-            switch (m_GenericQueue.presentKHR(&presentInfo))
+            auto result = m_GenericQueue.presentKHR(&presentInfo);
+            switch (result)
             {
                 case vk::Result::eSuboptimalKHR:
                 case vk::Result::eErrorOutOfDateKHR:
@@ -1305,6 +1306,11 @@ namespace vultra
 
                 default:
                     assert(false);
+            }
+
+            if (result != vk::Result::eErrorOutOfDateKHR)
+            {
+                m_GenericQueue.waitIdle();
             }
 
             return *this;

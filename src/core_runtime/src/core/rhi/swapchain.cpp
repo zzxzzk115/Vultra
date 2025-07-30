@@ -149,7 +149,8 @@ namespace vultra
             {
                 case vk::Result::eErrorOutOfDateKHR:
                     recreate();
-                    [[fallthrough]];
+                    return false;
+
                 case vk::Result::eSuboptimalKHR:
                 case vk::Result::eSuccess:
                     return true;
@@ -180,46 +181,40 @@ namespace vultra
 
         void Swapchain::create(Format format, VerticalSync vsync)
         {
+            m_Device.waitIdle();
+
             const auto oldSwapchain = std::exchange(m_Handle, nullptr);
 
             const auto surfaceInfo = getSurfaceInfo(m_PhysicalDevice, m_Surface);
 
             // Using framebuffer extent as the swapchain extent for Wayland compatibility
             const auto fbExtent = m_Window->getFrameBufferExtent();
-            auto       extent   = rhi::Extent2D {static_cast<uint32_t>(fbExtent.x), static_cast<uint32_t>(fbExtent.y)};
 
-            if (extent != fromVk(surfaceInfo.capabilities.currentExtent))
-            {
-                VULTRA_CORE_WARN("[Swapchain] Requested extent ({}, {}) does not match current extent ({}, {}), "
-                                 "If you are using Wayland, this is expected, since the default current extent is "
-                                 "(UINT32_MAX, UINT32_MAX).",
-                                 extent.width,
-                                 extent.height,
-                                 surfaceInfo.capabilities.currentExtent.width,
-                                 surfaceInfo.capabilities.currentExtent.height);
-            }
+            Extent2D extent;
 
-            if (extent.width > surfaceInfo.capabilities.maxImageExtent.width ||
-                extent.height > surfaceInfo.capabilities.maxImageExtent.height)
+            switch (m_Window->getDriverType())
             {
-                VULTRA_CORE_WARN("[Swapchain] Requested extent ({}, {}) exceeds maximum ({}, {}), "
-                                 "clamping to maximum",
-                                 extent.width,
-                                 extent.height,
-                                 surfaceInfo.capabilities.maxImageExtent.width,
-                                 surfaceInfo.capabilities.maxImageExtent.height);
-                extent = fromVk(surfaceInfo.capabilities.maxImageExtent);
-            }
-            else if (extent.width < surfaceInfo.capabilities.minImageExtent.width ||
-                     extent.height < surfaceInfo.capabilities.minImageExtent.height)
-            {
-                VULTRA_CORE_WARN("[Swapchain] Requested extent ({}, {}) is smaller than minimum ({}, {}), "
-                                 "clamping to minimum",
-                                 extent.width,
-                                 extent.height,
-                                 surfaceInfo.capabilities.minImageExtent.width,
-                                 surfaceInfo.capabilities.minImageExtent.height);
-                extent = fromVk(surfaceInfo.capabilities.minImageExtent);
+                case os::Window::DriverType::eX11:
+                    if (surfaceInfo.capabilities.currentExtent.width != 4294967289u &&
+                        surfaceInfo.capabilities.currentExtent.height != 4294967289u)
+                    {
+                        // Use the current extent if available
+                        extent = fromVk(surfaceInfo.capabilities.currentExtent);
+                    }
+                    else
+                    {
+                        // Fallback to framebuffer extent
+                        extent = Extent2D {static_cast<uint32_t>(fbExtent.x), static_cast<uint32_t>(fbExtent.y)};
+                    }
+                    break;
+
+                case os::Window::DriverType::eWayland:
+                    // Wayland does not provide a current extent, so we use the window extent
+                    extent = Extent2D {static_cast<uint32_t>(fbExtent.x), static_cast<uint32_t>(fbExtent.y)};
+                    break;
+
+                default:
+                    extent = fromVk(surfaceInfo.capabilities.currentExtent);
             }
 
             const vk::SurfaceFormatKHR kSurfaceDefaultFormat {
@@ -270,6 +265,8 @@ namespace vultra
                 m_Device.waitIdle();
                 m_Device.destroySwapchainKHR(oldSwapchain);
             }
+
+            m_Device.waitIdle();
         }
 
         void Swapchain::buildBuffers(Extent2D extent, PixelFormat pixelFormat)

@@ -81,6 +81,17 @@ namespace vultra
             using WindowEventType = uint32_t;
             using WindowEvent     = SDL_Event;
 
+            enum class DriverType
+            {
+                eX11,
+                eWayland,
+                eWin32,
+                eCocoa,
+                eUIKit, // iOS
+            };
+
+            [[nodiscard]] static DriverType getDriverType();
+
             struct GeneralWindowEvent
             {
                 WindowEventType type;

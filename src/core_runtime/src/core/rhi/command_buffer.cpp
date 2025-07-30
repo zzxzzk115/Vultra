@@ -763,6 +763,8 @@ namespace vultra
                 return;
             }
 
+            m_Device.waitIdle();
+
             reset();
 
             m_Device.destroyFence(m_Fence);
