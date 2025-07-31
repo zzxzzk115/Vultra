@@ -59,23 +59,12 @@ namespace vultra
             };
         }
 
-        FrameController::BeginFrameResult FrameController::beginFrame()
+        CommandBuffer& FrameController::beginFrame()
         {
             assert(m_Swapchain);
             ZoneScopedN("RHI::BeginFrame");
 
             auto& [cb, imageAcquired, _] = m_Frames[m_FrameIndex];
-            bool valid                   = m_Swapchain->acquireNextImage(imageAcquired);
-
-            FrameController::BeginFrameResult result {
-                .commandBuffer = cb,
-                .valid         = valid,
-            };
-
-            if (!valid)
-            {
-                return result;
-            }
 
             cb.reset();
             cb.begin();
@@ -84,7 +73,16 @@ namespace vultra
                 TRACKY_VK_NEXT_FRAME(cb);
             }
 
-            return result;
+            return cb;
+        }
+
+        bool FrameController::acquireNextFrame()
+        {
+            assert(m_Swapchain);
+            ZoneScopedN("RHI::AcquireNextFrame");
+
+            auto& [cb, imageAcquired, _] = m_Frames[m_FrameIndex];
+            return m_Swapchain->acquireNextImage(imageAcquired);
         }
 
         FrameController& FrameController::endFrame()

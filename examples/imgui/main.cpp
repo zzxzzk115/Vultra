@@ -92,10 +92,12 @@ public:
         ImGui::Begin("Example Window");
         ImGui::Text("Hello, world!");
         ImGui::Button("Capture One Frame");
+#ifdef VULTRA_ENABLE_RENDERDOC
         if (ImGui::IsItemClicked())
         {
             m_WantCaptureFrame = true;
         }
+#endif
         ImGui::End();
     }
 

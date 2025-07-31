@@ -169,12 +169,11 @@ int main()
         if (!swapchain)
             continue;
 
-        auto& backBuffer = frameController.getCurrentTarget().texture;
-
-        auto [cb, valid] = frameController.beginFrame();
-        if (!valid)
+        auto& backBuffer        = frameController.getCurrentTarget().texture;
+        auto& cb                = frameController.beginFrame();
+        bool  acquiredNextFrame = frameController.acquireNextFrame();
+        if (!acquiredNextFrame)
         {
-            // If the command buffer is not valid, skip this frame.
             continue;
         }
 

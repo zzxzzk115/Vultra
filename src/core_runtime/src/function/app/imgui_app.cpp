@@ -22,7 +22,7 @@ namespace vultra
 
     void ImGuiApp::drawGui(rhi::CommandBuffer& cb, const rhi::RenderTargetView rtv)
     {
-        auto& [frameIndex, target] = rtv;
+        const auto& [frameIndex, target] = rtv;
         rhi::prepareForAttachment(cb, target, false);
 
         imgui::ImGuiRenderer::render(cb,

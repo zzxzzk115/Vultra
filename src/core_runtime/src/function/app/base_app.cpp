@@ -1,39 +1,8 @@
 #include "vultra/function/app/base_app.hpp"
-
 #include "vultra/function/service/services.hpp"
 
 namespace vultra
 {
-    namespace
-    {
-        class FPSMonitor final
-        {
-        public:
-            explicit FPSMonitor(os::Window& window) : m_Target {window}, m_OriginalTile {window.getTitle()} {}
-
-            void update(const fsec dt)
-            {
-                ++m_NumFrames;
-                m_Time += dt;
-
-                if (m_Time >= 1s)
-                {
-                    m_Target.setTitle(std::format("{} | FPS = {}", m_OriginalTile, m_NumFrames));
-
-                    m_Time      = 0s;
-                    m_NumFrames = 0;
-                }
-            }
-
-        private:
-            os::Window&       m_Target;
-            const std::string m_OriginalTile;
-
-            uint32_t m_NumFrames {0};
-            fsec     m_Time {0s};
-        };
-    } // namespace
-
     BaseApp::BaseApp(std::span<char*>, const AppConfig& cfg) :
         m_RenderDocAPI(std::make_unique<RenderDocAPI>()),
         m_Window(os::Window::Builder {}.setExtent({cfg.width, cfg.height}).build()),
@@ -125,7 +94,8 @@ namespace vultra
                         m_RenderDocAPI->setCaptureTitle(fmt::format("Vultra Frame#{}", frameCounter));
                     }
 
-                    auto [cb, valid] = m_FrameController.beginFrame();
+                    auto& cb    = m_FrameController.beginFrame();
+                    bool  valid = m_FrameController.acquireNextFrame();
                     if (!valid)
                     {
                         // If the command buffer is not valid, skip this frame.

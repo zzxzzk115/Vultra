@@ -37,8 +37,8 @@ namespace vultra
         [[nodiscard]] rhi::RenderDevice& getRenderDevice();
         [[nodiscard]] rhi::Swapchain&    getSwapchain();
 
-        void run();
-        void close();
+        virtual void run();
+        void         close();
 
     protected:
         void setupWindowCallbacks();
@@ -65,6 +65,33 @@ namespace vultra
         std::unique_ptr<rhi::RenderDevice> m_RenderDevice {nullptr};
         rhi::Swapchain                     m_Swapchain;
         rhi::FrameController               m_FrameController;
+    };
+
+    class FPSMonitor final
+    {
+    public:
+        explicit FPSMonitor(os::Window& window) : m_Target {window}, m_OriginalTile {window.getTitle()} {}
+
+        void update(const fsec dt)
+        {
+            ++m_NumFrames;
+            m_Time += dt;
+
+            if (m_Time >= 1s)
+            {
+                m_Target.setTitle(std::format("{} | FPS = {}", m_OriginalTile, m_NumFrames));
+
+                m_Time      = 0s;
+                m_NumFrames = 0;
+            }
+        }
+
+    private:
+        os::Window&       m_Target;
+        const std::string m_OriginalTile;
+
+        uint32_t m_NumFrames {0};
+        fsec     m_Time {0s};
     };
 } // namespace vultra
 
