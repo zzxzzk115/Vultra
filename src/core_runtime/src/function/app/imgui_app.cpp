@@ -45,11 +45,10 @@ namespace vultra
         imgui::ImGuiRenderer::end();
     }
 
-    bool ImGuiApp::onRender(rhi::CommandBuffer& cb, const rhi::RenderTargetView rtv, const fsec)
+    void ImGuiApp::onRender(rhi::CommandBuffer& cb, const rhi::RenderTargetView rtv, const fsec)
     {
         ZoneScopedN("ImGuiApp::onRender");
         drawGui(cb, rtv);
-        return true;
     }
 
     void ImGuiApp::onPostRender() { imgui::ImGuiRenderer::postRender(); }

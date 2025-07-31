@@ -26,11 +26,12 @@ namespace vultra
 
     RenderDocAPI::~RenderDocAPI()
     {
-        unload();
         if (m_RenderDocAPI)
         {
+            m_RenderDocAPI->Shutdown();
             m_RenderDocAPI = nullptr;
         }
+        unload();
     }
 
     bool RenderDocAPI::load()
@@ -71,6 +72,15 @@ namespace vultra
     // }
 
     bool RenderDocAPI::isAvailable() const { return m_IsAvailable; }
+
+    bool RenderDocAPI::isFrameCapturing() const
+    {
+        if (m_RenderDocAPI)
+        {
+            return m_RenderDocAPI->IsFrameCapturing() != 0;
+        }
+        return false;
+    }
 
     void RenderDocAPI::startFrameCapture() const
     {
@@ -215,7 +225,7 @@ namespace vultra
                 m_RenderDocAPI->SetCaptureOptionU32(eRENDERDOC_Option_APIValidation, 1);
 #endif
                 m_RenderDocAPI->SetCaptureFilePathTemplate("captures/myframe");
-                m_RenderDocAPI->MaskOverlayBits(0, 0);
+                m_RenderDocAPI->MaskOverlayBits(eRENDERDOC_Overlay_None, eRENDERDOC_Overlay_None);
             }
         }
         return m_RenderDocAPI;

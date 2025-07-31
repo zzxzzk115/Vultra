@@ -75,7 +75,6 @@ namespace vultra
 
             if (m_Swapchain)
             {
-                bool ok = true;
                 {
                     ZoneScopedN("[App] PreRender");
                     onPreRender();
@@ -83,7 +82,7 @@ namespace vultra
                 {
                     ZoneScopedN("[App] Render");
 
-                    if (m_WantCaptureFrame)
+                    if (m_WantCaptureFrame && !m_RenderDocAPI->isFrameCapturing())
                     {
                         if (!m_RenderDocAPI->isTargetControlConnected())
                         {
@@ -102,11 +101,11 @@ namespace vultra
                         continue;
                     }
 
-                    ok = onRender(cb, m_FrameController.getCurrentTarget(), deltaTime);
+                    onRender(cb, m_FrameController.getCurrentTarget(), deltaTime);
 
                     m_FrameController.endFrame();
 
-                    if (m_WantCaptureFrame)
+                    if (m_WantCaptureFrame && m_RenderDocAPI->isFrameCapturing())
                     {
                         m_RenderDocAPI->endFrameCapture();
                         m_RenderDocAPI->showReplayUI();
@@ -121,11 +120,6 @@ namespace vultra
                     ZoneScopedN("[App] Present");
                     m_FrameController.present();
                     frameCounter++;
-                }
-
-                if (!ok)
-                {
-                    continue;
                 }
             }
             FrameMark;

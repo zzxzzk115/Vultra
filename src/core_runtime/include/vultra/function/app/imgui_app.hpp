@@ -23,7 +23,7 @@ namespace vultra
         void onPostUpdate(const fsec dt) override;
 
         void onPreRender() override;
-        bool onRender(rhi::CommandBuffer&, const rhi::RenderTargetView, const fsec dt) override;
+        void onRender(rhi::CommandBuffer&, const rhi::RenderTargetView, const fsec dt) override;
         void onPostRender() override;
 
         virtual void onImGui() {}

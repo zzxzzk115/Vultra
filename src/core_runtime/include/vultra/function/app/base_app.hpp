@@ -53,7 +53,7 @@ namespace vultra
         virtual void onPostUpdate(const fsec) {}
 
         virtual void onPreRender() {}
-        virtual bool onRender(rhi::CommandBuffer&, const rhi::RenderTargetView, const fsec) { return true; }
+        virtual void onRender(rhi::CommandBuffer&, const rhi::RenderTargetView, const fsec) {}
         virtual void onPostRender() {}
 
     protected:

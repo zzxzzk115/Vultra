@@ -21,6 +21,8 @@ namespace vultra
         // const RENDERDOC_API_1_6_0* getAPI() const;
         bool isAvailable() const;
 
+        bool isFrameCapturing() const;
+
         void startFrameCapture() const;
         void endFrameCapture() const;
 

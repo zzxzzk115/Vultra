@@ -24,7 +24,7 @@ namespace vultra
         virtual void onNormalRender(rhi::CommandBuffer&, const rhi::RenderTargetView, const fsec dt) {}
 
     private:
-        bool onRender(rhi::CommandBuffer&, const rhi::RenderTargetView, const fsec dt) override;
+        void onRender(rhi::CommandBuffer&, const rhi::RenderTargetView, const fsec dt) override;
 
     protected:
         openxr::XRHeadset m_Headset;

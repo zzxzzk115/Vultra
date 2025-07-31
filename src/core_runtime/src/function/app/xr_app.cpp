@@ -43,6 +43,7 @@ namespace vultra
             }
             else if (frameResult == openxr::XRHeadset::BeginFrameResult::eSkipAll)
             {
+                VULTRA_CORE_TRACE("[App] Headset skipped one frame, continuing to the next iteration");
                 continue;
             }
 
@@ -65,7 +66,7 @@ namespace vultra
             }
 
             // Renderdoc Capture Begin
-            if (m_WantCaptureFrame)
+            if (m_WantCaptureFrame && !m_RenderDocAPI->isFrameCapturing())
             {
                 if (!m_RenderDocAPI->isTargetControlConnected())
                 {
@@ -74,6 +75,8 @@ namespace vultra
 
                 m_RenderDocAPI->startFrameCapture();
                 m_RenderDocAPI->setCaptureTitle(fmt::format("Vultra Frame#{}", frameCounter));
+
+                VULTRA_CORE_INFO("[App] Renderdoc Capture started");
             }
 
             // Begin frame
@@ -113,11 +116,13 @@ namespace vultra
             m_FrameController.endFrame();
 
             // Renderdoc Capture End
-            if (m_WantCaptureFrame)
+            if (m_WantCaptureFrame && m_RenderDocAPI->isFrameCapturing())
             {
                 m_RenderDocAPI->endFrameCapture();
                 m_RenderDocAPI->showReplayUI();
                 m_WantCaptureFrame = false;
+
+                VULTRA_CORE_INFO("[App] Renderdoc Capture ended");
             }
 
             {
@@ -148,13 +153,13 @@ namespace vultra
         service::Services::reset();
     }
 
-    bool XRApp::onRender(rhi::CommandBuffer& cb, const rhi::RenderTargetView rtv, const fsec dt)
+    void XRApp::onRender(rhi::CommandBuffer& cb, const rhi::RenderTargetView rtv, const fsec dt)
     {
         {
             ZoneScopedN("XRApp::onNormalRender");
             onNormalRender(cb, rtv, dt);
         }
 
-        return ImGuiApp::onRender(cb, rtv, dt);
+        ImGuiApp::onRender(cb, rtv, dt);
     }
 } // namespace vultra
