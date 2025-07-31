@@ -91,8 +91,8 @@ public:
         ImGui::ShowDemoWindow();
         ImGui::Begin("Example Window");
         ImGui::Text("Hello, world!");
-        ImGui::Button("Capture One Frame");
 #ifdef VULTRA_ENABLE_RENDERDOC
+        ImGui::Button("Capture One Frame");
         if (ImGui::IsItemClicked())
         {
             m_WantCaptureFrame = true;
@@ -101,7 +101,7 @@ public:
         ImGui::End();
     }
 
-    bool onRender(rhi::CommandBuffer& cb, const rhi::RenderTargetView rtv, const fsec dt) override
+    void onRender(rhi::CommandBuffer& cb, const rhi::RenderTargetView rtv, const fsec dt) override
     {
         const auto& [frameIndex, target] = rtv;
         rhi::prepareForAttachment(cb, target, false);
@@ -125,8 +125,6 @@ public:
                 .endRendering();
         }
         ImGuiApp::onRender(cb, rtv, dt);
-
-        return true;
     }
 
 private:

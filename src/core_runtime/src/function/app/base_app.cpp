@@ -32,8 +32,6 @@ namespace vultra
         fsec       deltaTime {targetFrameTime};
         fsec       accumulator {0};
 
-        uint64_t frameCounter = 0;
-
         // https://gafferongames.com/post/fix_your_timestep/
         // http://gameprogrammingpatterns.com/game-loop.html
         // https://dewitters.com/dewitters-gameloop/
@@ -82,16 +80,7 @@ namespace vultra
                 {
                     ZoneScopedN("[App] Render");
 
-                    if (m_WantCaptureFrame && !m_RenderDocAPI->isFrameCapturing())
-                    {
-                        if (!m_RenderDocAPI->isTargetControlConnected())
-                        {
-                            m_RenderDocAPI->launchReplayUI();
-                        }
-
-                        m_RenderDocAPI->startFrameCapture();
-                        m_RenderDocAPI->setCaptureTitle(fmt::format("Vultra Frame#{}", frameCounter));
-                    }
+                    renderDocCaptureBegin();
 
                     auto& cb    = m_FrameController.beginFrame();
                     bool  valid = m_FrameController.acquireNextFrame();
@@ -105,12 +94,7 @@ namespace vultra
 
                     m_FrameController.endFrame();
 
-                    if (m_WantCaptureFrame && m_RenderDocAPI->isFrameCapturing())
-                    {
-                        m_RenderDocAPI->endFrameCapture();
-                        m_RenderDocAPI->showReplayUI();
-                        m_WantCaptureFrame = false;
-                    }
+                    renderDocCaptureEnd();
                 }
                 {
                     ZoneScopedN("[App] PostRender");
@@ -119,7 +103,7 @@ namespace vultra
                 {
                     ZoneScopedN("[App] Present");
                     m_FrameController.present();
-                    frameCounter++;
+                    m_FrameCounter++;
                 }
             }
             FrameMark;
@@ -168,5 +152,47 @@ namespace vultra
     void BaseApp::onKeyPress(int key, int scancode, int mod)
     {
         // TODO: InputSystem
+    }
+
+    void BaseApp::renderDocCaptureBegin()
+    {
+        if (m_WantCaptureFrame && !m_RenderDocAPI->isFrameCapturing())
+        {
+            if (m_RenderDocAPI->isAvailable())
+            {
+                if (!m_RenderDocAPI->isTargetControlConnected())
+                {
+                    m_RenderDocAPI->launchReplayUI();
+                }
+
+                m_RenderDocAPI->startFrameCapture();
+                m_RenderDocAPI->setCaptureTitle(fmt::format("Vultra Frame#{}", m_FrameCounter));
+
+                VULTRA_CORE_INFO("[App] Renderdoc Capture started");
+            }
+            else
+            {
+                VULTRA_CORE_WARN("[App] Renderdoc is not available, cannot capture frame");
+            }
+        }
+    }
+
+    void BaseApp::renderDocCaptureEnd()
+    {
+        if (m_WantCaptureFrame && m_RenderDocAPI->isFrameCapturing())
+        {
+            if (m_RenderDocAPI->isAvailable())
+            {
+                m_RenderDocAPI->endFrameCapture();
+                m_RenderDocAPI->showReplayUI();
+                m_WantCaptureFrame = false;
+
+                VULTRA_CORE_INFO("[App] Renderdoc Capture ended");
+            }
+            else
+            {
+                VULTRA_CORE_WARN("[App] Renderdoc is not available, cannot end capture");
+            }
+        }
     }
 } // namespace vultra

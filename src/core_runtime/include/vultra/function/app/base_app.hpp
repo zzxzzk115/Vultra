@@ -56,9 +56,13 @@ namespace vultra
         virtual void onRender(rhi::CommandBuffer&, const rhi::RenderTargetView, const fsec) {}
         virtual void onPostRender() {}
 
+        void renderDocCaptureBegin();
+        void renderDocCaptureEnd();
+
     protected:
-        bool m_IsRunning {true};
-        bool m_WantCaptureFrame {false};
+        bool     m_IsRunning {true};
+        bool     m_WantCaptureFrame {false};
+        uint64_t m_FrameCounter {0};
 
         std::unique_ptr<RenderDocAPI>      m_RenderDocAPI {nullptr};
         os::Window                         m_Window;

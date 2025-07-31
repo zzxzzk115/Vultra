@@ -103,6 +103,14 @@ public:
                     XR_VERSION_MINOR(xrInstanceProperties.runtimeVersion),
                     XR_VERSION_PATCH(xrInstanceProperties.runtimeVersion));
 
+#ifdef VULTRA_ENABLE_RENDERDOC
+        ImGui::Button("Capture One Frame");
+        if (ImGui::IsItemClicked())
+        {
+            m_WantCaptureFrame = true;
+        }
+#endif
+
         ImGui::End();
     }
 

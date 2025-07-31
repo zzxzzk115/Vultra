@@ -15,8 +15,6 @@ namespace vultra
         fsec       deltaTime {targetFrameTime};
         fsec       accumulator {0};
 
-        uint64_t frameCounter = 0;
-
         // https://github.com/janhsimon/openxr-vulkan-example/blob/main/src/Main.cpp
 
         while (!m_Window.shouldClose() && !m_Headset.isExitRequested())
@@ -65,19 +63,7 @@ namespace vultra
                 onPostUpdate(deltaTime);
             }
 
-            // Renderdoc Capture Begin
-            if (m_WantCaptureFrame && !m_RenderDocAPI->isFrameCapturing())
-            {
-                if (!m_RenderDocAPI->isTargetControlConnected())
-                {
-                    m_RenderDocAPI->launchReplayUI();
-                }
-
-                m_RenderDocAPI->startFrameCapture();
-                m_RenderDocAPI->setCaptureTitle(fmt::format("Vultra Frame#{}", frameCounter));
-
-                VULTRA_CORE_INFO("[App] Renderdoc Capture started");
-            }
+            renderDocCaptureBegin();
 
             // Begin frame
             auto& cb = m_FrameController.beginFrame();
@@ -115,15 +101,7 @@ namespace vultra
 
             m_FrameController.endFrame();
 
-            // Renderdoc Capture End
-            if (m_WantCaptureFrame && m_RenderDocAPI->isFrameCapturing())
-            {
-                m_RenderDocAPI->endFrameCapture();
-                m_RenderDocAPI->showReplayUI();
-                m_WantCaptureFrame = false;
-
-                VULTRA_CORE_INFO("[App] Renderdoc Capture ended");
-            }
+            renderDocCaptureEnd();
 
             {
                 ZoneScopedN("[App] PostRender");
@@ -135,7 +113,7 @@ namespace vultra
             {
                 ZoneScopedN("[App] Present");
                 m_FrameController.present();
-                frameCounter++;
+                m_FrameCounter++;
             }
 
             FrameMark;
