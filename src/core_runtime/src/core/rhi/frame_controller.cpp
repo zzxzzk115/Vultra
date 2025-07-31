@@ -1,5 +1,6 @@
 #include "vultra/core/rhi/frame_controller.hpp"
 
+#include "vultra/core/base/common_context.hpp"
 #include "vultra/core/rhi/render_device.hpp"
 #include "vultra/core/rhi/swapchain.hpp"
 
@@ -58,16 +59,22 @@ namespace vultra
             };
         }
 
-        CommandBuffer& FrameController::beginFrame(bool& valid)
+        FrameController::BeginFrameResult FrameController::beginFrame()
         {
             assert(m_Swapchain);
             ZoneScopedN("RHI::BeginFrame");
 
             auto& [cb, imageAcquired, _] = m_Frames[m_FrameIndex];
-            valid = m_Swapchain->acquireNextImage(imageAcquired);
+            bool valid                   = m_Swapchain->acquireNextImage(imageAcquired);
+
+            FrameController::BeginFrameResult result {
+                .commandBuffer = cb,
+                .valid         = valid,
+            };
+
             if (!valid)
             {
-                return cb;
+                return result;
             }
 
             cb.reset();
@@ -77,7 +84,7 @@ namespace vultra
                 TRACKY_VK_NEXT_FRAME(cb);
             }
 
-            return cb;
+            return result;
         }
 
         FrameController& FrameController::endFrame()
@@ -126,6 +133,7 @@ namespace vultra
                     .renderCompleted = rd.createSemaphore(),
                 };
             });
+            VULTRA_CORE_TRACE("[FrameController] Created with {} frames in flight", numFramesInFlight);
         }
 
         void FrameController::destroy() noexcept

@@ -13,6 +13,15 @@ rule("vulkansdk")
             -- Instead, we rely on Vulkan-Headers
             -- target:add("includedirs", vulkansdk.includedirs)
 
+            local suffix
+            if target:is_plat("windows") then
+                suffix = ".lib"
+            elseif target:is_plat("macosx") then
+                suffix = ".dylib"
+            else
+                suffix = ".so"
+            end
+
             local utils = {}
             table.insert(utils, target:is_plat("windows") and "vulkan-1" or "vulkan")
     
@@ -23,7 +32,7 @@ rule("vulkansdk")
                 end
                 -- add vulkan library
                 lib_name = target:is_plat("windows") and util or "lib" .. util
-                target:add("links", path.join(vulkansdk.linkdirs[1], lib_name .. (target:is_plat("windows") and ".lib" or ".so")), { public = true })
+                target:add("links", path.join(vulkansdk.linkdirs[1], lib_name .. suffix), { public = true })
             end
         end
     end)

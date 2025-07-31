@@ -913,7 +913,7 @@ namespace vultra
                         },
                 },
                 {
-                    .stageMask  = PipelineStages::eFragmentShader,
+                    .stageMask  = PipelineStages::eVertexShader | PipelineStages::eFragmentShader,
                     .accessMask = Access::eShaderRead,
                 });
         }
@@ -930,6 +930,51 @@ namespace vultra
                     .accessMask = rhi::Access::eTransferWrite,
                 });
             cb.clear(texture, clearValue);
+        }
+
+        void prepareForComputing(CommandBuffer& cb, const Texture& texture)
+        {
+            assert(texture);
+
+            cb.getBarrierBuilder().imageBarrier(
+                {
+                    .image     = texture,
+                    .newLayout = rhi::ImageLayout::eGeneral,
+                },
+                {
+                    .stageMask  = rhi::PipelineStages::eComputeShader,
+                    .accessMask = rhi::Access::eShaderRead | rhi::Access::eShaderWrite,
+                });
+        }
+
+        void prepareForComputing(CommandBuffer& cb, const Buffer& buffer)
+        {
+            assert(buffer);
+
+            cb.getBarrierBuilder().bufferBarrier(
+                {
+                    .buffer = buffer,
+                },
+                {
+                    .stageMask  = rhi::PipelineStages::eComputeShader,
+                    .accessMask = rhi::Access::eShaderRead | rhi::Access::eShaderWrite,
+                });
+        }
+
+        void prepareForReading(CommandBuffer& cb, const Buffer& buffer)
+        {
+            assert(buffer);
+
+            cb.getBarrierBuilder().bufferBarrier(
+                {
+                    .buffer = buffer,
+                    .offset = 0,
+                    .size   = buffer.getSize(),
+                },
+                {
+                    .stageMask  = rhi::PipelineStages::eVertexShader | rhi::PipelineStages::eFragmentShader,
+                    .accessMask = rhi::Access::eShaderRead,
+                });
         }
     } // namespace rhi
 } // namespace vultra

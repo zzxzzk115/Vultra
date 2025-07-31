@@ -63,6 +63,8 @@ namespace vultra
         fsec       deltaTime {targetFrameTime};
         fsec       accumulator {0};
 
+        uint64_t frameCounter = 0;
+
         // https://gafferongames.com/post/fix_your_timestep/
         // http://gameprogrammingpatterns.com/game-loop.html
         // https://dewitters.com/dewitters-gameloop/
@@ -120,13 +122,13 @@ namespace vultra
                         }
 
                         m_RenderDocAPI->startFrameCapture();
-                        m_RenderDocAPI->setCaptureTitle("Vultra Frame Capture #unknown");
+                        m_RenderDocAPI->setCaptureTitle(fmt::format("Vultra Frame#{}", frameCounter));
                     }
 
-                    bool valid = false;
-                    auto& cb = m_FrameController.beginFrame(valid);
+                    auto [cb, valid] = m_FrameController.beginFrame();
                     if (!valid)
                     {
+                        // If the command buffer is not valid, skip this frame.
                         continue;
                     }
 
@@ -148,6 +150,7 @@ namespace vultra
                 {
                     ZoneScopedN("[App] Present");
                     m_FrameController.present();
+                    frameCounter++;
                 }
 
                 if (!ok)
@@ -185,15 +188,18 @@ namespace vultra
 
         if (event.type == SDL_EVENT_WINDOW_RESIZED)
         {
-            // Only resize for Wayland, as X11 handles it automatically
-            if (m_Window.getDriverType() == os::Window::DriverType::eWayland)
-            {
-                onResize(event.internalEvent.window.data1, event.internalEvent.window.data2);
-            }
+            onResize(event.internalEvent.window.data1, event.internalEvent.window.data2);
         }
     }
 
-    void BaseApp::onResize(uint32_t /*width*/, uint32_t /*height*/) { m_Swapchain.recreate(); }
+    void BaseApp::onResize(uint32_t /*width*/, uint32_t /*height*/)
+    {
+        // Only recreate the swapchain for Wayland, as X11 handles it automatically
+        if (m_Window.getDriverType() == os::Window::DriverType::eWayland)
+        {
+            m_Swapchain.recreate();
+        }
+    }
 
     void BaseApp::onKeyPress(int key, int scancode, int mod)
     {

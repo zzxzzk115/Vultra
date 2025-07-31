@@ -59,8 +59,12 @@ Step-by-Step:
   ```
   or run a specific program:
   ```bash
-  xmake run example-rhi
-  xmake run example-openxr
+  xmake run example-window
+  xmake run example-rhi-triangle
+  xmake run example-imgui
+  xmake run example-framegraph-triangle
+  xmake run example-openxr-triangle
+  xmake run example-openxr-cube
   ```
 
   > **Tips:**

@@ -1,5 +1,5 @@
 includes("window")
+includes("rhi/triangle")
 includes("imgui")
-includes("openxr")
-includes("rhi")
 includes("framegraph/triangle")
+includes("openxr/triangle")

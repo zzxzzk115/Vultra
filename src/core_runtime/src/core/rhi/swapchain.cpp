@@ -267,6 +267,11 @@ namespace vultra
             }
 
             m_Device.waitIdle();
+
+            VULTRA_CORE_TRACE("[Swapchain] Created, extent: ({}, {}), present mode: {}",
+                             extent.width,
+                             extent.height,
+                             magic_enum::enum_name(presentMode));
         }
 
         void Swapchain::buildBuffers(Extent2D extent, PixelFormat pixelFormat)

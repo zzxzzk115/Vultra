@@ -184,6 +184,9 @@ namespace vultra
         void prepareForReading(CommandBuffer&, const Texture&, uint32_t mipLevel = 0, uint32_t layer = 0);
         void
         clearImageForComputing(CommandBuffer&, Texture&, const ClearValue& clearValue = ClearValue {glm::vec4(0.0f)});
+        void prepareForComputing(CommandBuffer& cb, const Texture& texture);
+        void prepareForComputing(CommandBuffer& cb, const Buffer& buffer);
+        void prepareForReading(CommandBuffer& cb, const Buffer& buffer);
     } // namespace rhi
 } // namespace vultra
 

@@ -9,7 +9,9 @@
 #include <fg/Blackboard.hpp>
 #include <fg/FrameGraph.hpp>
 
+#if _DEBUG
 #include <fstream>
+#endif
 
 struct SimpleVertex
 {
@@ -168,7 +170,13 @@ int main()
             continue;
 
         auto& backBuffer = frameController.getCurrentTarget().texture;
-        auto& cb         = frameController.beginFrame();
+
+        auto [cb, valid] = frameController.beginFrame();
+        if (!valid)
+        {
+            // If the command buffer is not valid, skip this frame.
+            continue;
+        }
 
         // Prepare backBuffer for rendering
         rhi::prepareForAttachment(cb, backBuffer, false);

@@ -120,7 +120,13 @@ void main() {
             continue;
 
         auto& backBuffer = frameController.getCurrentTarget().texture;
-        auto& cb         = frameController.beginFrame();
+
+        auto [cb, valid] = frameController.beginFrame();
+        if (!valid)
+        {
+            // If the command buffer is not valid, skip this frame.
+            continue;
+        }
 
         rhi::prepareForAttachment(cb, backBuffer, false);
         const rhi::FramebufferInfo framebufferInfo {.area             = rhi::Rect2D {.extent = backBuffer.getExtent()},
