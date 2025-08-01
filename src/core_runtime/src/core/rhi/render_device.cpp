@@ -7,6 +7,7 @@
 #include "vultra/function/openxr/xr_device.hpp"
 
 #include <SDL3/SDL_vulkan.h>
+#include <cpptrace/cpptrace.hpp>
 #include <glm/common.hpp>
 
 #include <set>
@@ -101,6 +102,7 @@ namespace
 
             case vk::DebugUtilsMessageSeverityFlagBitsEXT::eError:
                 VULTRA_CORE_ERROR("{} {}", vk::to_string(messageType), pCallbackData->pMessage);
+                cpptrace::generate_trace().print();
                 break;
         }
 

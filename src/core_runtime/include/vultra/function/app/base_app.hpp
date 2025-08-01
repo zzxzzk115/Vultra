@@ -8,6 +8,8 @@
 #include "vultra/core/rhi/frame_index.hpp"
 #include "vultra/core/rhi/render_device.hpp"
 
+#include <cpptrace/from_current.hpp>
+
 namespace vultra
 {
     struct AppConfig
@@ -102,14 +104,15 @@ namespace vultra
 #define CONFIG_MAIN(AppClass) \
     int main(int argc, char* argv[]) \
     { \
-        try \
+        CPPTRACE_TRY \
         { \
             AppClass app {std::span {argv, std::size_t(argc)}}; \
             app.run(); \
         } \
-        catch (const std::exception& e) \
+        CPPTRACE_CATCH (const std::exception& e) \
         { \
             VULTRA_CLIENT_CRITICAL(e.what()); \
+            cpptrace::from_current_exception().print(); \
             return -1; \
         } \
         return 0; \
