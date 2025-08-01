@@ -77,9 +77,9 @@ target("vultra")
     add_defines("VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1", { public = true })
 
     -- tracy & tracky required defines
-    -- default: tracy enabled, tracky disabled
+    -- default: tracy enabled, tracky enabled
     add_defines("TRACY_ENABLE=1", { public = true })
-    add_defines("TRACKY_ENABLE=0", { public = true })
+    add_defines("TRACKY_ENABLE=1", { public = true })
     add_defines("TRACKY_VULKAN", { public = true })
 
     -- fmt fix
