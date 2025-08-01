@@ -34,6 +34,8 @@ namespace vultra
         void launchReplayUI(uint32_t connectTargetControl = 1, const std::string_view cmdline = "") const;
         void showReplayUI() const;
 
+        uint32_t getCaptureCount() const;
+
     private:
         bool loadDLL();
         void unloadDLL();

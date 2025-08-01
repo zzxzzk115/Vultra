@@ -86,7 +86,14 @@ target("vultra")
     add_defines("FMT_UNICODE=0", { public = true })
 
     if is_mode("debug") then
-        add_defines("_DEBUG", "VULTRA_ENABLE_RENDERDOC", { public = true })
+        add_defines("_DEBUG", { public = true })
+        -- If it runs OpenXR apps with Monado, then disable RenderDoc, since Monado XRT already has RenderDoc support by default.
+        local xr_runtime = os.getenv("XR_RUNTIME_JSON")
+        if xr_runtime and xr_runtime:find("monado") then
+            print("Disabling RenderDoc support due to Monado runtime detected.")
+        else
+            add_defines("VULTRA_ENABLE_RENDERDOC", { public = true })
+        end
     else
         add_defines("NDEBUG", { public = true })
     end

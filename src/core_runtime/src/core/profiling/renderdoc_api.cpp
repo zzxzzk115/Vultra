@@ -147,6 +147,15 @@ namespace vultra
         }
     }
 
+    uint32_t RenderDocAPI::getCaptureCount() const
+    {
+        if (m_RenderDocAPI)
+        {
+            return m_RenderDocAPI->GetNumCaptures();
+        }
+        return 0;
+    }
+
     bool RenderDocAPI::loadDLL()
     {
         if (m_IsAvailable)
