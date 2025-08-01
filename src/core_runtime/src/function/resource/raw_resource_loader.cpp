@@ -1,4 +1,5 @@
 #include "vultra/function/resource/raw_resource_loader.hpp"
+#include "vultra/core/base/common_context.hpp"
 #include "vultra/core/rhi/render_device.hpp"
 #include "vultra/core/rhi/util.hpp"
 
@@ -222,13 +223,19 @@ namespace vultra
 
             auto extent = rhi::Extent2D {static_cast<uint32_t>(tc.width), static_cast<uint32_t>(tc.height)};
 
+            if (tc.num_layers > 1)
+            {
+                VULTRA_CORE_WARN("[TextureLoader] KTX/DDS texture with multiple layers is not supported yet. Fallback to single layer.");
+            }
+
             // Create the texture from the parsed information
             rhi::Texture texture = rhi::Texture::Builder {}
                                        .setExtent(extent)
                                        .setPixelFormat(toRHI(tc.format))
                                        .setNumMipLevels(tc.num_mips)
-                                       .setNumLayers(tc.num_layers)
+                                       .setNumLayers(std::nullopt)
                                        .setUsageFlags(rhi::ImageUsage::eSampled | rhi::ImageUsage::eTransferDst)
+                                       .setupOptimalSampler(true)
                                        .build(rd);
             if (!texture)
             {
@@ -245,7 +252,7 @@ namespace vultra
                     {
                         // Read the texture data
                         ddsktx_sub_data subData;
-                        ddsktx_get_sub(&tc, &subData, file, size, layer, face, mip);
+                        ddsktx_get_sub(&tc, &subData, fileData.data(), size, layer, face, mip);
                         if (!subData.buff)
                         {
                             return std::unexpected {"Failed to get texture sub-data."};
@@ -256,7 +263,6 @@ namespace vultra
                         const auto srcStagingBuffer = rd.createStagingBuffer(uploadSize, subData.buff);
                         if (!srcStagingBuffer)
                         {
-                            ;
                             return std::unexpected {"Failed to create staging buffer."};
                         }
 
