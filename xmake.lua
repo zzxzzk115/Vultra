@@ -10,10 +10,23 @@ set_languages("cxx23")
 -- global options
 option("examples") -- build examples?
     set_default(true)
+    set_showmenu(true)
+    set_description("Enable examples")
 option_end()
 
 option("tests") -- build tests?
     set_default(true)
+    set_showmenu(true)
+    set_description("Enable tests")
+option_end()
+
+option("wayland") -- use wayland
+    set_default(false)
+    set_showmenu(true)
+    set_description("Enable Wayland support")
+    on_check(function (option)
+        option:enable(is_plat("linux"))
+    end)
 option_end()
 
 -- if build on windows
@@ -32,11 +45,16 @@ else
     add_cxxflags("-fexceptions")
 end
 
--- global rules
-rule("copy_assets")
-    on_load(function(target)
-        -- https://xmake.io/#/zh-cn/manual/builtin_modules?id=oscp
-        os.cp("$(projectdir)/resources/*", target:targetdir() .. "/resources", {rootdir = "resources"})
+-- add rules
+rule("linux.sdl.driver")
+    before_run(function (target)
+        if is_plat("linux") then
+            if has_config("wayland") then
+                os.setenv("SDL_VIDEODRIVER", "wayland")
+            else
+                os.setenv("SDL_VIDEODRIVER", "x11")
+            end
+        end
     end)
 rule_end()
 
@@ -46,9 +64,6 @@ add_rules("plugin.compile_commands.autoupdate", {outputdir = ".vscode", lsp = "c
 
 -- add repositories
 add_repositories("my-xmake-repo https://github.com/zzxzzk115/xmake-repo.git backup")
-
--- include external libraries
-includes("external")
 
 -- include source
 includes("src")

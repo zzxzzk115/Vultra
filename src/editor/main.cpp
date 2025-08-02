@@ -53,6 +53,12 @@ public:
     explicit ImGuiExampleApp(const std::span<char*>& args) :
         ImGuiApp(args, {.title = "RHI Triangle with ImGui"}, {.enableDocking = false})
     {
+        VULTRA_CLIENT_TRACE("ArgCount: {}", args.size());
+        for (const auto* arg : args)
+        {
+            VULTRA_CLIENT_TRACE("Arg: {}", arg);
+        }
+
         m_VertexBuffer = m_RenderDevice->createVertexBuffer(sizeof(SimpleVertex), 3);
 
         // Upload vertex buffer

@@ -21,12 +21,12 @@
 
 (This project is under early development and WIP.)
 
+Vultra is based on [libvultra](https://github.com/zzxzzk115/libvultra).
+
 ## Features
-- Modern Vulkan using Vulkan-Hpp, Vulkan-Memory-Allocator-Hpp and more
-- FrameGraph (RenderGraph) based rendering system
-- OpenXR support (now focusing on VR only, not AR)
-- Modern SDL using SDL3
-- ImGui docking + multiview
+You may also want to know the core features [here](https://github.com/zzxzzk115/libvultra?tab=readme-ov-file#features)
+
+- Modern Rendering System on top of libvultra.
 
 ## Build Instructions
 
@@ -59,12 +59,8 @@ Step-by-Step:
   ```
   or run a specific program:
   ```bash
-  xmake run example-window
-  xmake run example-rhi-triangle
-  xmake run example-imgui
-  xmake run example-framegraph-triangle
-  xmake run example-openxr-triangle
-  xmake run example-openxr-cube
+  xmake run VultraEditor
+  xmake run VultraHub
   ```
 
   > **Tips:**
@@ -72,19 +68,10 @@ Step-by-Step:
   > For debugging OpenXR programs without headsets, you may need Meta XR Simulator on Windows and macOS. On Linux, you can use Monado as the simulator.
 
 ## Future Work
-- [x] Wayland support
-- [ ] More powerful texture loader that supports KTX, KTX2, DDS, HDR and more
-- [ ] ECS-based scene management with EnTT
 - [ ] Modern Render Paths
-- [ ] Raytracing Pipeline
-- [ ] Mesh Shading Pipeline
 - [ ] Resource Pipeline
 - [ ] Project Management
 - [ ] Hot-Reload
-- [ ] Editor
-- [ ] Launcher
-- [ ] Lua or C# Scripting System
-- [ ] (Maybe?) AR support
 
 ## License
 This project is under the [MIT](LICENSE) license.
