@@ -20,15 +20,6 @@ option("tests") -- build tests?
     set_description("Enable tests")
 option_end()
 
-option("wayland") -- use wayland
-    set_default(false)
-    set_showmenu(true)
-    set_description("Enable Wayland support")
-    on_check(function (option)
-        option:enable(is_plat("linux"))
-    end)
-option_end()
-
 -- if build on windows
 if is_plat("windows") then
     add_cxxflags("/Zc:__cplusplus", {tools = {"msvc", "cl"}}) -- fix __cplusplus == 199711L error
@@ -46,6 +37,21 @@ else
 end
 
 -- add rules
+rule("imguiconfig")
+    set_extensions(".ini")
+
+    on_build_file(function (target, sourcefile, opt) end)
+
+    after_build_file(function (target, sourcefile, opt)
+        if path.basename(sourcefile) ~= "imgui" then
+            return
+        end
+        local output_path = path.join(target:targetdir(), path.filename(sourcefile))
+        os.cp(sourcefile, output_path)
+        print("Copying imgui config: " .. sourcefile .. " -> " .. output_path)
+    end)
+rule_end()
+
 rule("linux.sdl.driver")
     before_run(function (target)
         if is_plat("linux") then
@@ -58,12 +64,26 @@ rule("linux.sdl.driver")
     end)
 rule_end()
 
+rule("clangd.config")
+    on_config(function (target)
+        if is_host("windows") then
+            os.cp(".clangd.win", ".clangd")
+        else
+            os.cp(".clangd.nowin", ".clangd")
+        end
+    end)
+rule_end()
+
 add_rules("mode.debug", "mode.release")
 add_rules("plugin.vsxmake.autoupdate")
 add_rules("plugin.compile_commands.autoupdate", {outputdir = ".vscode", lsp = "clangd"})
+add_rules("clangd.config")
 
 -- add repositories
 add_repositories("my-xmake-repo https://github.com/zzxzzk115/xmake-repo.git backup")
+
+-- include external
+includes("external")
 
 -- include source
 includes("src")

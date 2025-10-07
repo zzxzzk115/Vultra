@@ -1,0 +1,4 @@
+[submodule "external/libvultra"]
+	path = external/libvultra
+	url = https://github.com/zzxzzk115/libvultra.git
+	branch = dev
