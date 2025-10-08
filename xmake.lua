@@ -86,7 +86,7 @@ add_repositories("my-xmake-repo https://github.com/zzxzzk115/xmake-repo.git back
 includes("external")
 
 -- include source
-includes("src")
+includes("source")
 
 -- include tests
 if has_config("tests") then
