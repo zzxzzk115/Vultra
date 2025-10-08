@@ -9,13 +9,13 @@ target("VultraEditor")
     add_headerfiles("include/(vultra_editor/**.hpp)")
 
     -- add source files
-    add_files("src/**.cpp")
+    add_files("src/**.cpp", "imgui.ini")
 
     -- add deps
     add_deps("vultra")
 
     -- add rules
-    add_rules("linux.sdl.driver")
+    add_rules("linux.sdl.driver", "imguiconfig")
 
     -- set target directory
     set_targetdir("$(builddir)/$(plat)/$(arch)/$(mode)/VultraEditor")
