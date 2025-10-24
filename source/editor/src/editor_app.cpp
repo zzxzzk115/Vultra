@@ -17,10 +17,50 @@ namespace vultra
         EditorApp::EditorApp(const std::span<char*>& args) :
             ImGuiApp(args, {.title = "Vultra Editor", .width = 1280, .height = 720})
         {
+            m_CurrentProject.name = "NewVultraProject";
+
             VULTRA_CLIENT_TRACE("ArgCount: {}", args.size());
             for (uint32_t i = 0; i < args.size(); ++i)
             {
                 VULTRA_CLIENT_TRACE("Arg[{}]: {}", i, args[i]);
+            }
+
+            m_ArgParser.add_description("Vultra Engine Editor Application");
+            m_ArgParser.add_argument("--project", "Path to the project file").default_value(std::string(""));
+
+            try
+            {
+                m_ArgParser.parse_args(args.size(), args.data());
+            }
+            catch (const std::exception& e)
+            {
+                VULTRA_CLIENT_ERROR("Failed to parse arguments: {}", e.what());
+                throw;
+            }
+
+            auto projectPath = m_ArgParser.get<std::string>("--project");
+
+            if (projectPath.empty())
+            {
+                VULTRA_CLIENT_WARN("No project file specified.");
+            }
+            else
+            {
+                if (!engine::loadProject(projectPath, m_CurrentProject))
+                {
+                    VULTRA_CLIENT_ERROR("Failed to load project file: {}", projectPath);
+                    // Create a default project
+                    auto projectDir = std::filesystem::path(projectPath).parent_path().generic_string();
+                    if (!std::filesystem::exists(projectDir))
+                    {
+                        std::filesystem::create_directories(projectDir);
+                    }
+                    engine::createDefaultProject(projectDir, m_CurrentProject.name);
+                }
+                else
+                {
+                    VULTRA_CLIENT_INFO("Loaded project: {}", m_CurrentProject.name);
+                }
             }
 
             m_UIWindowManager.registerWindow<ConsoleWindow>();

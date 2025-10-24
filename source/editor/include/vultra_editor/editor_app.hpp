@@ -3,6 +3,9 @@
 #include "vultra_editor/ui/ui_window_manager.hpp"
 
 #include <vultra/function/app/imgui_app.hpp>
+#include <vultra_engine/project/project.hpp>
+
+#include <argparse/argparse.hpp>
 
 namespace vultra
 {
@@ -29,7 +32,9 @@ namespace vultra
             void drawMainMenuBar();
 
         private:
-            UIWindowManager m_UIWindowManager;
+            UIWindowManager          m_UIWindowManager;
+            argparse::ArgumentParser m_ArgParser {"Vultra Editor"};
+            engine::Project          m_CurrentProject {};
         };
     } // namespace editor
 } // namespace vultra

@@ -25,9 +25,7 @@
 Vultra is based on [libvultra](https://github.com/zzxzzk115/libvultra).
 
 ## Features
-You may also want to know the core features [here](https://github.com/zzxzzk115/libvultra?tab=readme-ov-file#features)
-
-- Modern Rendering System on top of libvultra.
+- User-friendly Editor
 
 ## Build Instructions
 
@@ -45,7 +43,7 @@ Step-by-Step:
 
 - Clone the project:
   ```bash
-  git clone https://github.com/zzxzzk115/Vultra.git
+  git clone --recursive https://github.com/zzxzzk115/Vultra.git
   ```
 
 - Build the project:
@@ -54,14 +52,9 @@ Step-by-Step:
   xmake -vD
   ```
 
-- Run the programs:
-  ```bash
-  xmake run
-  ```
-  or run a specific program:
+- Run the Editor
   ```bash
   xmake run VultraEditor
-  xmake run VultraHub
   ```
 
   > **Tips:**
@@ -69,8 +62,6 @@ Step-by-Step:
   > For debugging OpenXR programs without headsets, you may need Meta XR Simulator on Windows and macOS. On Linux, you can use Monado as the simulator.
 
 ## Future Work
-- [ ] Modern Render Paths
-- [ ] Resource Pipeline
 - [ ] Project Management
 - [ ] Hot-Reload
 
