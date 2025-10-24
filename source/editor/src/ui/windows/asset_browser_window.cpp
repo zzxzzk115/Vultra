@@ -216,6 +216,10 @@ namespace vultra
             // Draw items
             for (const auto& path : filesToShow)
             {
+                // Skip meta files
+                if (path.extension() == ".vmeta")
+                    continue;
+
                 std::string name  = path.filename().string();
                 bool        isDir = std::filesystem::is_directory(path);
 
