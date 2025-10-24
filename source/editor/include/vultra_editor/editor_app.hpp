@@ -1,5 +1,6 @@
 #pragma once
 
+#include "vultra_editor/asset/asset_database.hpp"
 #include "vultra_editor/ui/ui_window_manager.hpp"
 
 #include <vultra/function/app/imgui_app.hpp>
@@ -32,9 +33,11 @@ namespace vultra
             void drawMainMenuBar();
 
         private:
-            UIWindowManager          m_UIWindowManager;
+            UIWindowManager m_UIWindowManager;
+
             argparse::ArgumentParser m_ArgParser {"Vultra Editor"};
-            engine::Project          m_CurrentProject {};
+
+            engine::Project m_CurrentProject {};
         };
     } // namespace editor
 } // namespace vultra

@@ -1,1 +1,5 @@
-imported/
+# Imported Assets
+.imported/
+
+# Vultra Metadata Files
+*.vmeta

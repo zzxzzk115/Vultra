@@ -46,11 +46,11 @@ namespace vultra
             }
             else
             {
+                auto projectDir = std::filesystem::path(projectPath).parent_path().generic_string();
                 if (!engine::loadProject(projectPath, m_CurrentProject))
                 {
                     VULTRA_CLIENT_ERROR("Failed to load project file: {}", projectPath);
                     // Create a default project
-                    auto projectDir = std::filesystem::path(projectPath).parent_path().generic_string();
                     if (!std::filesystem::exists(projectDir))
                     {
                         std::filesystem::create_directories(projectDir);
@@ -59,10 +59,15 @@ namespace vultra
                 }
                 else
                 {
-                    VULTRA_CLIENT_INFO("Loaded project: {}", m_CurrentProject.name);
+                    VULTRA_CLIENT_INFO("Loaded project: {} at {}", m_CurrentProject.name, m_CurrentProject.directory);
+                    m_CurrentProject.directory = projectDir;
                 }
             }
 
+            // Initialize Asset Database
+            AssetDatabase::get()->initialize(m_CurrentProject);
+
+            // Register UI Windows
             m_UIWindowManager.registerWindow<ConsoleWindow>();
             m_UIWindowManager.registerWindow<AssetBrowserWindow>();
             m_UIWindowManager.registerWindow<GameViewWindow>();
@@ -70,6 +75,7 @@ namespace vultra
             m_UIWindowManager.registerWindow<SceneGraphWindow>();
             m_UIWindowManager.registerWindow<SceneViewWindow>();
 
+            // Initialize UIWindowManager
             m_UIWindowManager.onInit();
         }
 
@@ -123,13 +129,6 @@ namespace vultra
 
         void EditorApp::onImGui()
         {
-            // #ifdef VULTRA_ENABLE_RENDERDOC
-            //             ImGui::Button("Capture One Frame");
-            //             if (ImGui::IsItemClicked())
-            //             {
-            //                 m_WantCaptureFrame = true;
-            //             }
-            // #endif
             drawMainMenuBar();
             m_UIWindowManager.onImGui();
             ImGuiApp::onImGui();
@@ -154,6 +153,17 @@ namespace vultra
                         ImGui::MenuItem(w->getName().c_str(), nullptr, &w->isOpen());
                     ImGui::EndMenu();
                 }
+
+#ifdef VULTRA_ENABLE_RENDERDOC
+                if (ImGui::BeginMenu("RenderDoc"))
+                {
+                    if (ImGui::MenuItem("Capture Frame"))
+                    {
+                        m_WantCaptureFrame = true;
+                    }
+                    ImGui::EndMenu();
+                }
+#endif
 
                 ImGui::EndMainMenuBar();
             }

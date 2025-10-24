@@ -49,6 +49,7 @@ Step-by-Step:
 - Build the project:
   ```bash
   cd Vultra
+  git submodule update --init
   xmake -vD
   ```
 

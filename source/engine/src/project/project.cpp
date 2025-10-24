@@ -1,8 +1,8 @@
 #include "vultra_engine/project/project.hpp"
 
-#include <nlohmann/json.hpp>
-
 #include <fstream>
+
+constexpr auto PROJECT_NVP = "project";
 
 namespace vultra
 {
@@ -16,15 +16,9 @@ namespace vultra
                 return false;
             }
 
-            nlohmann::json jsonData;
-            file >> jsonData;
-
-            // Deserialize JSON data into Project struct
-            outProject.serialVersion      = jsonData["serialVersion"];
-            outProject.engineMajorVersion = jsonData["engineMajorVersion"];
-            outProject.engineMinorVersion = jsonData["engineMinorVersion"];
-            outProject.enginePatchVersion = jsonData["enginePatchVersion"];
-            outProject.name               = jsonData["name"];
+            // Cereal JSON deserialization
+            cereal::JSONInputArchive archive(file);
+            archive(cereal::make_nvp(PROJECT_NVP, outProject));
 
             return true;
         }
@@ -37,14 +31,9 @@ namespace vultra
                 return false;
             }
 
-            nlohmann::json jsonData;
-            jsonData["serialVersion"]      = project.serialVersion;
-            jsonData["engineMajorVersion"] = project.engineMajorVersion;
-            jsonData["engineMinorVersion"] = project.engineMinorVersion;
-            jsonData["enginePatchVersion"] = project.enginePatchVersion;
-            jsonData["name"]               = project.name;
-
-            file << jsonData.dump(4); // Pretty print with 4 spaces
+            // Cereal JSON serialization
+            cereal::JSONOutputArchive archive(file);
+            archive(cereal::make_nvp(PROJECT_NVP, project));
 
             return true;
         }
@@ -52,7 +41,8 @@ namespace vultra
         void createDefaultProject(const std::string& projectDir, const std::string& projectName)
         {
             Project defaultProject {};
-            defaultProject.name = projectName;
+            defaultProject.name      = projectName;
+            defaultProject.directory = projectDir;
 
             saveProject(projectDir + "/" + projectName + ".vproj", defaultProject);
         }

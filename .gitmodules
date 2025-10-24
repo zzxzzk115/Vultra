@@ -2,7 +2,3 @@
 	path = external/libvultra
 	url = https://github.com/zzxzzk115/libvultra.git
 	branch = dev
-[submodule "external/vasset"]
-	path = external/vasset
-	url = https://github.com/zzxzzk115/vasset.git
-	branch = dev

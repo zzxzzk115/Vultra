@@ -1,7 +1,9 @@
 {
-    "engineMajorVersion": 0,
-    "engineMinorVersion": 1,
-    "enginePatchVersion": 0,
-    "name": "ExampleProject",
-    "serialVersion": 1
+    "project": {
+        "serialVersion": 1,
+        "engineMajorVersion": 0,
+        "engineMinorVersion": 1,
+        "enginePatchVersion": 0,
+        "name": "ExampleProject"
+    }
 }

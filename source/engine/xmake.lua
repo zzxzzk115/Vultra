@@ -12,7 +12,7 @@ target("VultraEngine")
     add_files("src/**.cpp")
 
     -- add deps
-    add_deps("vasset", "vultra", {public = true})
+    add_deps("vultra", {public = true})
 
     -- set target directory
     set_targetdir("$(builddir)/$(plat)/$(arch)/$(mode)/VultraEngine")
