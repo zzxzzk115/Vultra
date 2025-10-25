@@ -159,13 +159,16 @@ namespace vultra
                 }
 
 #ifdef VULTRA_ENABLE_RENDERDOC
-                if (ImGui::BeginMenu("RenderDoc"))
+                if (m_RenderDocAPI->isAvailable())
                 {
-                    if (ImGui::MenuItem("Capture Frame"))
+                    if (ImGui::BeginMenu("RenderDoc"))
                     {
-                        m_WantCaptureFrame = true;
+                        if (ImGui::MenuItem("Capture Frame"))
+                        {
+                            m_WantCaptureFrame = true;
+                        }
+                        ImGui::EndMenu();
                     }
-                    ImGui::EndMenu();
                 }
 #endif
 
