@@ -3,6 +3,7 @@
 
 #include <IconsMaterialDesignIcons.h>
 #include <imgui.h>
+#include <imgui_internal.h>
 
 namespace vultra
 {
@@ -132,12 +133,28 @@ namespace vultra
                 return;
             }
 
+            // Clear selection when switching directory
+            if (!m_SelectedPath.empty())
+            {
+                if (m_SelectedPath.parent_path() != m_CurrentDir)
+                    m_SelectedPath.clear();
+            }
+
             // Filter input
             ImGui::TextUnformatted("Filter:");
             ImGui::SameLine();
             ImGui::PushItemWidth(-1);
             ImGui::InputText("##Filter", m_FilterBuffer, sizeof(m_FilterBuffer));
             ImGui::PopItemWidth();
+
+            ImGui::Separator();
+            ImGui::TextUnformatted("Icon Size:");
+            ImGui::SameLine();
+            ImGui::PushItemWidth(-1);
+            ImGui::SliderFloat("##IconSize", &m_IconSize, m_MinIconSize, m_MaxIconSize, "%.0f px"); // Icon scaling
+            ImGui::PopItemWidth();
+
+            bool listMode = (m_IconSize < m_ListThreshold); // Switch to list mode when below threshold
 
             // Breadcrumb navigation
             {
@@ -171,12 +188,17 @@ namespace vultra
             ImGui::Separator();
 
             // Icon grid
-            const float iconSize    = 64.0f;
             const float cellPadding = 8.0f;
+            float       iconSize    = m_IconSize;
             float       panelWidth  = ImGui::GetContentRegionAvail().x;
-            int         columns     = static_cast<int>(panelWidth / (iconSize + cellPadding));
-            if (columns < 1)
-                columns = 1;
+
+            int columns = 1;
+            if (!listMode)
+            {
+                columns = static_cast<int>(panelWidth / (iconSize + cellPadding));
+                if (columns < 1)
+                    columns = 1;
+            }
             ImGui::Columns(columns, nullptr, false);
 
             std::vector<std::filesystem::path> filesToShow;
@@ -216,7 +238,6 @@ namespace vultra
             // Draw items
             for (const auto& path : filesToShow)
             {
-                // Skip meta files
                 if (path.extension() == ".vmeta")
                     continue;
 
@@ -225,25 +246,93 @@ namespace vultra
 
                 ImGui::PushID(name.c_str());
 
-                // Folder / file icon
+                // Thumbnail / Icon
                 if (isDir)
+                {
                     ImGui::Button(ICON_MDI_FOLDER, ImVec2(iconSize, iconSize));
+                }
                 else
-                    ImGui::Button(ICON_MDI_FILE, ImVec2(iconSize, iconSize));
+                {
+                    std::string ext = path.extension().string();
+                    std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+                    bool isImage = (ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".bmp" ||
+                                    ext == ".tga" || ext == ".hdr");
 
-                // Tooltip
-                if (ImGui::IsItemHovered())
-                    ImGui::SetTooltip("%s", name.c_str());
+                    if (isImage)
+                    {
+                        auto  uuid       = AssetDatabase::get()->getMetaUUID(path);
+                        auto* texId      = AssetDatabase::get()->getImGuiTextureByUUID(uuid);
+                        auto  imguiTexId = static_cast<ImTextureID>(reinterpret_cast<intptr_t>(texId));
 
-                // Double-click to open folder
-                if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) && isDir)
+                        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
+                        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+
+                        if (imguiTexId)
+                            ImGui::Image(imguiTexId, ImVec2(iconSize, iconSize));
+                        else
+                            ImGui::Button(ICON_MDI_FILE_IMAGE, ImVec2(iconSize, iconSize));
+
+                        ImGui::PopStyleVar(2);
+                    }
+                    else
+                    {
+                        ImGui::Button(ICON_MDI_FILE, ImVec2(iconSize, iconSize));
+                    }
+                }
+
+                ImVec2 iconMin = ImGui::GetItemRectMin();
+                ImVec2 iconMax = ImGui::GetItemRectMax();
+
+                if (listMode)
+                {
+                    ImGui::SameLine();
+                    ImGui::TextUnformatted(name.c_str());
+                }
+                else
+                {
+                    ImGui::TextWrapped("%s", name.c_str());
+                }
+
+                ImVec2 textMin = ImGui::GetItemRectMin();
+                ImVec2 textMax = ImGui::GetItemRectMax();
+
+                ImVec2 cellMin(ImMin(iconMin.x, textMin.x), ImMin(iconMin.y, textMin.y));
+                ImVec2 cellMax(ImMax(iconMax.x, textMax.x), ImMax(iconMax.y, textMax.y));
+
+                ImGui::SetItemAllowOverlap();
+
+                // Hover / Click Check
+                bool hovered = ImGui::IsMouseHoveringRect(cellMin, cellMax);
+                bool clicked = ImGui::IsMouseClicked(ImGuiMouseButton_Left) && hovered;
+
+                // Select highlight
+                bool isSelected = (m_SelectedPath == path);
+                if (hovered || isSelected)
+                {
+                    ImDrawList* drawList = ImGui::GetWindowDrawList();
+                    ImU32       color    = isSelected ?
+                                               ImGui::GetColorU32(ImVec4(0.2f, 0.4f, 0.7f, 0.4f)) :
+                                               ImGui::GetColorU32(ImVec4(ImGui::GetStyleColorVec4(ImGuiCol_HeaderHovered).x,
+                                                                ImGui::GetStyleColorVec4(ImGuiCol_HeaderHovered).y,
+                                                                ImGui::GetStyleColorVec4(ImGuiCol_HeaderHovered).z,
+                                                                0.2f));
+                    drawList->AddRectFilled(cellMin, cellMax, color, 4.0f);
+                }
+
+                if (clicked)
+                {
+                    // Select file
+                    m_SelectedPath = path;
+                }
+
+                // Double-click to open directory
+                if (hovered && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) && isDir)
                 {
                     m_CurrentDir     = path;
                     m_FocusToCurrent = true;
+                    m_SelectedPath.clear();
                 }
 
-                // Name under icon
-                ImGui::TextWrapped("%s", name.c_str());
                 ImGui::NextColumn();
                 ImGui::PopID();
             }

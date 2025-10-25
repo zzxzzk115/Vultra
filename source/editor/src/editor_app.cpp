@@ -65,7 +65,7 @@ namespace vultra
             }
 
             // Initialize Asset Database
-            AssetDatabase::get()->initialize(m_CurrentProject);
+            AssetDatabase::get()->initialize(m_CurrentProject, *m_RenderDevice);
 
             // Register UI Windows
             m_UIWindowManager.registerWindow<ConsoleWindow>();
@@ -79,7 +79,11 @@ namespace vultra
             m_UIWindowManager.onInit();
         }
 
-        EditorApp::~EditorApp() { m_UIWindowManager.onDestroy(); }
+        EditorApp::~EditorApp()
+        {
+            m_UIWindowManager.onDestroy();
+            AssetDatabase::destroy();
+        }
 
         void EditorApp::onPreUpdate(const fsec dt)
         {
