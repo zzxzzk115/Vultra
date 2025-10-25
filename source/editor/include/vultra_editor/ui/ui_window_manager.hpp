@@ -21,10 +21,10 @@ namespace vultra
                 return ptr;
             }
 
-            void onInit()
+            void onInit(rhi::RenderDevice& renderDevice)
             {
                 for (auto& w : m_Windows)
-                    w->onInit();
+                    w->onInit(renderDevice);
             }
 
             void onDestroy()
@@ -69,12 +69,12 @@ namespace vultra
                 }
             }
 
-            void onPreRender(UIWindowRenderContext& ctx)
+            void onPreRender()
             {
                 for (auto& w : m_Windows)
                 {
                     if (w->m_IsOpen)
-                        w->onPreRender(ctx);
+                        w->onPreRender();
                 }
             }
 
@@ -87,12 +87,12 @@ namespace vultra
                 }
             }
 
-            void onPostRender(UIWindowRenderContext& ctx)
+            void onPostRender()
             {
                 for (auto& w : m_Windows)
                 {
                     if (w->m_IsOpen)
-                        w->onPostRender(ctx);
+                        w->onPostRender();
                 }
             }
 

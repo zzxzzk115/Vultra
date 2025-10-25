@@ -25,3 +25,9 @@ vsxmake*/
 
 # clangd
 .clangd
+
+# imgui
+imgui.ini
+
+# renderdoc captures
+captures/

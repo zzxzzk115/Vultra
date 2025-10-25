@@ -1,6 +1,8 @@
 #pragma once
 
 #include <vultra/core/base/base.hpp>
+#include <vultra/core/rhi/rendertarget_view.hpp>
+#include <vultra/function/renderer/builtin/builtin_renderer.hpp>
 
 #include <string>
 
@@ -9,7 +11,12 @@ namespace vultra
     namespace editor
     {
         struct UIWindowRenderContext
-        {};
+        {
+            rhi::CommandBuffer&          cb;
+            gfx::BuiltinRenderer*        renderer {nullptr};
+            const rhi::RenderTargetView& rtv;
+            fsec                         dt {};
+        };
 
         class UIWindow
         {
@@ -19,7 +26,7 @@ namespace vultra
             UIWindow(const std::string& name) : m_Name(name) {}
             virtual ~UIWindow() = default;
 
-            virtual void onInit() {}
+            virtual void onInit(rhi::RenderDevice& renderDevice) { m_RenderDevice = &renderDevice; }
             virtual void onDestroy() {}
 
             virtual void onPreUpdate() {}
@@ -27,9 +34,9 @@ namespace vultra
             virtual void onPhysicsUpdate(const fsec) {}
             virtual void onPostUpdate(const fsec) {}
 
-            virtual void onPreRender(UIWindowRenderContext&) {}
+            virtual void onPreRender() {}
             virtual void onRender(UIWindowRenderContext&) {};
-            virtual void onPostRender(UIWindowRenderContext&) {}
+            virtual void onPostRender() {}
 
             virtual void onImGui() {}
 
@@ -39,6 +46,8 @@ namespace vultra
         protected:
             std::string m_Name;
             bool        m_IsOpen {true};
+
+            rhi::RenderDevice* m_RenderDevice {nullptr};
         };
     } // namespace editor
 } // namespace vultra

@@ -1,4 +1,5 @@
 #include "vultra_editor/editor_app.hpp"
+#include "vultra_editor/asset/asset_database.hpp"
 #include "vultra_editor/ui/windows/asset_browser_window.hpp"
 #include "vultra_editor/ui/windows/console_window.hpp"
 #include "vultra_editor/ui/windows/game_view_window.hpp"
@@ -7,6 +8,7 @@
 #include "vultra_editor/ui/windows/scene_view_window.hpp"
 
 #include <vultra/core/base/common_context.hpp>
+#include <vultra/function/scenegraph/entity.hpp>
 
 #include <imgui.h>
 
@@ -15,7 +17,8 @@ namespace vultra
     namespace editor
     {
         EditorApp::EditorApp(const std::span<char*>& args) :
-            ImGuiApp(args, {.title = "Vultra Editor", .width = 1280, .height = 720})
+            ImGuiApp(args, {.title = "Vultra Editor", .width = 1280, .height = 720}),
+            m_Renderer(*m_RenderDevice, m_Swapchain.getFormat())
         {
             m_CurrentProject.name = "NewVultraProject";
 
@@ -64,6 +67,21 @@ namespace vultra
                 }
             }
 
+            // TODO: Remove, test code
+            auto  camera          = m_EditingScene.createMainCamera();
+            auto& camTransform    = camera.getComponent<TransformComponent>();
+            auto& camComponent    = camera.getComponent<CameraComponent>();
+            camTransform.position = glm::vec3(8.0f, 1.5f, -0.5f);
+            camTransform.setRotationEuler({0.0f, 90.0f, 0.0f});
+            camComponent.clearFlags         = CameraClearFlags::eSkybox;
+            camComponent.environmentMapPath = (std::filesystem::path(projectPath).parent_path() /
+                                               "Assets/Textures/EnvMaps/citrus_orchard_puresky_1k.hdr")
+                                                  .generic_string();
+            m_EditingScene.createRawMeshEntity(
+                "Sponza",
+                (std::filesystem::path(projectPath).parent_path() / "Assets/Models/Sponza/Sponza.gltf")
+                    .generic_string());
+
             // Initialize Asset Database
             AssetDatabase::get()->initialize(m_CurrentProject, *m_RenderDevice);
 
@@ -76,7 +94,7 @@ namespace vultra
             m_UIWindowManager.registerWindow<SceneViewWindow>();
 
             // Initialize UIWindowManager
-            m_UIWindowManager.onInit();
+            m_UIWindowManager.onInit(*m_RenderDevice);
         }
 
         EditorApp::~EditorApp()
@@ -93,7 +111,19 @@ namespace vultra
 
         void EditorApp::onUpdate(const fsec dt)
         {
+            m_Renderer.setScene(&m_EditingScene);
             m_UIWindowManager.onUpdate(dt);
+
+            // TODO: Remove, test code
+            auto& cameraComponent = m_EditingScene.getMainCamera().getComponent<CameraComponent>();
+            auto* sceneViewWindow = m_UIWindowManager.find("Scene View");
+            if (sceneViewWindow)
+            {
+                auto* svw                      = reinterpret_cast<SceneViewWindow*>(sceneViewWindow);
+                cameraComponent.viewPortWidth  = svw->getViewportWidth();
+                cameraComponent.viewPortHeight = svw->getViewportHeight();
+            }
+
             ImGuiApp::onUpdate(dt);
         }
 
@@ -111,23 +141,21 @@ namespace vultra
 
         void EditorApp::onPreRender()
         {
-            UIWindowRenderContext ctx {};
-            m_UIWindowManager.onPreRender(ctx);
+            m_UIWindowManager.onPreRender();
             ImGuiApp::onPreRender();
         }
 
         void EditorApp::onRender(rhi::CommandBuffer& cb, const rhi::RenderTargetView rtv, const fsec dt)
         {
             // const auto& [frameIndex, target] = rtv;
-            UIWindowRenderContext ctx {};
+            UIWindowRenderContext ctx {.cb = cb, .renderer = &m_Renderer, .rtv = rtv, .dt = dt};
             m_UIWindowManager.onRender(ctx);
             ImGuiApp::onRender(cb, rtv, dt);
         }
 
         void EditorApp::onPostRender()
         {
-            UIWindowRenderContext ctx {};
-            m_UIWindowManager.onPostRender(ctx);
+            m_UIWindowManager.onPostRender();
             ImGuiApp::onPostRender();
         }
 
