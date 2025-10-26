@@ -27,7 +27,11 @@ namespace vultra
         private:
             LogicScene* m_LogicScene {nullptr};
 
-            Entity m_SelectedEntity;
+            Entity              m_SelectedEntity;
+            std::vector<Entity> m_PendingDeleteEntities;
+            Entity              m_RenamingEntity;
+            char                m_RenameBuffer[256] {0};
+            bool                m_RequestRenamePopup {false};
         };
     } // namespace editor
 } // namespace vultra

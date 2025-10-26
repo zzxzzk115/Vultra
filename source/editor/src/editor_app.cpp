@@ -125,13 +125,17 @@ namespace vultra
             m_UIWindowManager.onUpdate(dt);
 
             // TODO: Remove, test code
-            auto& cameraComponent = m_EditingScene.getMainCamera().getComponent<CameraComponent>();
-            auto* sceneViewWindow = m_UIWindowManager.find("Scene View");
-            if (sceneViewWindow)
+            auto mainCamera = m_EditingScene.getMainCamera();
+            if (mainCamera)
             {
-                auto* svw                      = reinterpret_cast<SceneViewWindow*>(sceneViewWindow);
-                cameraComponent.viewPortWidth  = svw->getViewportWidth();
-                cameraComponent.viewPortHeight = svw->getViewportHeight();
+                auto& cameraComponent = m_EditingScene.getMainCamera().getComponent<CameraComponent>();
+                auto* sceneViewWindow = m_UIWindowManager.find("Scene View");
+                if (sceneViewWindow)
+                {
+                    auto* svw                      = reinterpret_cast<SceneViewWindow*>(sceneViewWindow);
+                    cameraComponent.viewPortWidth  = svw->getViewportWidth();
+                    cameraComponent.viewPortHeight = svw->getViewportHeight();
+                }
             }
 
             ImGuiApp::onUpdate(dt);
