@@ -31,3 +31,6 @@ imgui.ini
 
 # renderdoc captures
 captures/
+
+# FrameGraph dot previews
+*.dot

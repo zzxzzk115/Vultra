@@ -77,10 +77,13 @@ namespace vultra
             camComponent.environmentMapPath = (std::filesystem::path(projectPath).parent_path() /
                                                "Assets/Textures/EnvMaps/citrus_orchard_puresky_1k.hdr")
                                                   .generic_string();
-            m_EditingScene.createRawMeshEntity(
+            auto rawMesh = m_EditingScene.createRawMeshEntity(
                 "Sponza",
                 (std::filesystem::path(projectPath).parent_path() / "Assets/Models/Sponza/Sponza.gltf")
                     .generic_string());
+
+            auto testChild = m_EditingScene.createEntity("Child of Sponza");
+            rawMesh.addChild(testChild.getCoreUUID());
 
             // Initialize Asset Database
             AssetDatabase::get()->initialize(m_CurrentProject, *m_RenderDevice);
@@ -95,6 +98,13 @@ namespace vultra
 
             // Initialize UIWindowManager
             m_UIWindowManager.onInit(*m_RenderDevice);
+
+            // Bind LogicScene to SceneGraphWindow
+            auto* sceneGraphWindow = reinterpret_cast<SceneGraphWindow*>(m_UIWindowManager.find("Scene Graph"));
+            if (sceneGraphWindow)
+            {
+                sceneGraphWindow->bindLogicScene(&m_EditingScene);
+            }
         }
 
         EditorApp::~EditorApp()

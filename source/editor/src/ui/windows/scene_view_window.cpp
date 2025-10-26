@@ -2,6 +2,8 @@
 
 #include <imgui.h>
 
+#include <algorithm>
+
 namespace vultra
 {
     namespace editor
@@ -19,7 +21,8 @@ namespace vultra
                                        .setExtent({.width = 800, .height = 600})
                                        .setPixelFormat(rhi::PixelFormat::eRGBA8_UNorm)
                                        .setNumMipLevels(1)
-                                       .setUsageFlags(rhi::ImageUsage::eRenderTarget | rhi::ImageUsage::eSampled)
+                                       .setUsageFlags(rhi::ImageUsage::eRenderTarget | rhi::ImageUsage::eSampled |
+                                                      rhi::ImageUsage::eTransferDst)
                                        .setupOptimalSampler(true)
                                        .build(renderDevice);
         }
@@ -29,6 +32,8 @@ namespace vultra
             ImGui::Begin(m_Name.c_str());
 
             ImVec2 availSize = ImGui::GetContentRegionAvail();
+            availSize.x      = std::max(availSize.x, 1.0f);
+            availSize.y      = std::max(availSize.y, 1.0f);
 
             if (m_SceneTexture)
             {
@@ -36,33 +41,14 @@ namespace vultra
                 if (static_cast<uint32_t>(availSize.x) != m_SceneRenderTexture.getExtent().width ||
                     static_cast<uint32_t>(availSize.y) != m_SceneRenderTexture.getExtent().height)
                 {
-                    m_SceneRenderTexture =
-                        rhi::Texture::Builder {}
-                            .setExtent({.width  = static_cast<uint32_t>(availSize.x),
-                                        .height = static_cast<uint32_t>(availSize.y)})
-                            .setPixelFormat(rhi::PixelFormat::eRGBA8_UNorm)
-                            .setNumMipLevels(1)
-                            .setUsageFlags(rhi::ImageUsage::eRenderTarget | rhi::ImageUsage::eSampled)
-                            .setupOptimalSampler(true)
-                            .build(*m_RenderDevice);
-
-                    imgui::removeTexture(*m_RenderDevice, m_SceneTexture);
-                    m_SceneTexture = imgui::addTexture(m_SceneRenderTexture);
+                    recreateRenderTexture(static_cast<uint32_t>(availSize.x), static_cast<uint32_t>(availSize.y));
                 }
-                ImGui::Image(m_SceneTexture, availSize);
             }
             else
             {
-                m_SceneRenderTexture = rhi::Texture::Builder {}
-                                           .setExtent({.width  = static_cast<uint32_t>(availSize.x),
-                                                       .height = static_cast<uint32_t>(availSize.y)})
-                                           .setPixelFormat(rhi::PixelFormat::eRGBA8_UNorm)
-                                           .setNumMipLevels(1)
-                                           .setUsageFlags(rhi::ImageUsage::eRenderTarget | rhi::ImageUsage::eSampled)
-                                           .setupOptimalSampler(true)
-                                           .build(*m_RenderDevice);
-                m_SceneTexture = imgui::addTexture(m_SceneRenderTexture);
+                recreateRenderTexture(static_cast<uint32_t>(availSize.x), static_cast<uint32_t>(availSize.y));
             }
+            ImGui::Image(m_SceneTexture, availSize);
 
             ImGui::End();
         }
@@ -75,5 +61,23 @@ namespace vultra
         uint32_t SceneViewWindow::getViewportWidth() const { return m_SceneRenderTexture.getExtent().width; }
 
         uint32_t SceneViewWindow::getViewportHeight() const { return m_SceneRenderTexture.getExtent().height; }
+
+        void SceneViewWindow::recreateRenderTexture(uint32_t width, uint32_t height)
+        {
+            m_SceneRenderTexture = rhi::Texture::Builder {}
+                                       .setExtent({.width = width, .height = height})
+                                       .setPixelFormat(rhi::PixelFormat::eRGBA8_UNorm)
+                                       .setNumMipLevels(1)
+                                       .setUsageFlags(rhi::ImageUsage::eRenderTarget | rhi::ImageUsage::eSampled |
+                                                      rhi::ImageUsage::eTransferDst)
+                                       .setupOptimalSampler(true)
+                                       .build(*m_RenderDevice);
+
+            if (m_SceneTexture)
+            {
+                imgui::removeTexture(*m_RenderDevice, m_SceneTexture);
+            }
+            m_SceneTexture = imgui::addTexture(m_SceneRenderTexture);
+        }
     } // namespace editor
 } // namespace vultra

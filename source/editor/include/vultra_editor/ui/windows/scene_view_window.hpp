@@ -22,6 +22,9 @@ namespace vultra
             uint32_t getViewportHeight() const;
 
         private:
+            void recreateRenderTexture(uint32_t width, uint32_t height);
+
+        private:
             imgui::ImGuiTextureID m_SceneTexture {nullptr};
             rhi::Texture          m_SceneRenderTexture;
         };
