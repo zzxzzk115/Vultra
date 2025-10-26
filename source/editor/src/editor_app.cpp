@@ -68,21 +68,22 @@ namespace vultra
             }
 
             // TODO: Remove, test code
-            auto  camera          = m_EditingScene.createMainCamera();
-            auto& camTransform    = camera.getComponent<TransformComponent>();
-            auto& camComponent    = camera.getComponent<CameraComponent>();
-            camTransform.position = glm::vec3(8.0f, 1.5f, -0.5f);
-            camTransform.setRotationEuler({0.0f, 90.0f, 0.0f});
+            auto  camera                    = m_EditingScene.createMainCamera();
+            auto& camTransform              = camera.getComponent<TransformComponent>();
+            auto& camComponent              = camera.getComponent<CameraComponent>();
+            camTransform.position           = glm::vec3(0.0f, 0.0f, 5.0f);
             camComponent.clearFlags         = CameraClearFlags::eSkybox;
             camComponent.environmentMapPath = (std::filesystem::path(projectPath).parent_path() /
                                                "Assets/Textures/EnvMaps/citrus_orchard_puresky_1k.hdr")
                                                   .generic_string();
             auto rawMesh = m_EditingScene.createRawMeshEntity(
-                "Sponza",
-                (std::filesystem::path(projectPath).parent_path() / "Assets/Models/Sponza/Sponza.gltf")
+                "DamagedHelmet",
+                (std::filesystem::path(projectPath).parent_path() / "Assets/Models/DamagedHelmet/DamagedHelmet.gltf")
                     .generic_string());
+            auto& rawMeshTransform = rawMesh.getComponent<TransformComponent>();
+            rawMeshTransform.setRotationEuler({0.0f, 45.0f, 0.0f});
 
-            auto testChild = m_EditingScene.createEntity("Child of Sponza");
+            auto testChild = m_EditingScene.createEntity("Child of DamagedHelmet");
             rawMesh.addChild(testChild.getCoreUUID());
 
             // Initialize Asset Database

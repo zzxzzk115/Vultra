@@ -24,6 +24,8 @@
 
 Vultra is based on [libvultra](https://github.com/zzxzzk115/libvultra).
 
+![Showcase](./media/images/VultraEditor_2025_10_26.png)
+
 ## Features
 - User-friendly Editor
 
@@ -62,7 +64,32 @@ Step-by-Step:
   > For OpenXR programs, you may need to set the XR_RUNTIME_JSON environment variable.
   > For debugging OpenXR programs without headsets, you may need Meta XR Simulator on Windows and macOS. On Linux, you can use Monado as the simulator.
 
-## Future Work
+## TODO List
+- [ ] Editor Windows
+  - [ ] Asset Browser
+    - [x] Tree View
+    - [x] Filter
+    - [x] Grid View & List View
+    - [ ] Right-click menus
+      - [ ] Reimport
+      - [ ] Create
+      - [ ] Delete
+      - [ ] Rename
+  - [ ] Scene Graph
+    - [x] Tree View
+    - [x] Status View
+    - [ ] Right-click menus
+      - [x] Create New Entity
+      - [x] Delete Entity
+      - [x] Rename Entity
+      - [ ] Create Others
+  - [ ] Scene View
+    - [x] Render Target View
+    - [ ] Tool bar
+    - [ ] 3D Gizmos
+    - [ ] Entity Selection
+  - [ ] Game View
+  - [ ] Inspector
 - [ ] Project Management
 - [ ] Hot-Reload
 
