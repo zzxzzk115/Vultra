@@ -51,7 +51,7 @@ Step-by-Step:
 - Build the project:
   ```bash
   cd Vultra
-  git submodule update --init
+  git submodule update --init --recursive
   xmake -vD
   ```
 
