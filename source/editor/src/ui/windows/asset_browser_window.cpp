@@ -1,6 +1,6 @@
 #include "vultra_editor/ui/windows/asset_browser_window.hpp"
 #include "vultra_editor/asset/asset_database.hpp"
-#include "vultra_editor/event/select_event.hpp"
+#include "vultra_editor/selector.hpp"
 
 #include <IconsMaterialDesignIcons.h>
 #include <imgui.h>
@@ -358,7 +358,9 @@ namespace vultra
 
                 if (!std::filesystem::is_directory(path))
                 {
-                    publish<SelectEvent>({AssetDatabase::get()->getMetaUUID(path), SelectType::eAsset});
+                    // Single selection for now
+                    Selector::unselectAll(SelectionCategory::eAsset);
+                    Selector::select(SelectionCategory::eAsset, AssetDatabase::get()->getMetaUUID(path));
                 }
 
                 if (path.parent_path() != m_CurrentDir)

@@ -1,5 +1,5 @@
 #include "vultra_editor/ui/windows/scene_graph_window.hpp"
-#include "vultra_editor/event/select_event.hpp"
+#include "vultra_editor/selector.hpp"
 
 #include <vultra/function/scenegraph/logic_scene.hpp>
 
@@ -253,7 +253,10 @@ namespace vultra
         void SceneGraphWindow::selectEntity(Entity& entity)
         {
             m_SelectedEntity = entity;
-            publish<SelectEvent>({entity.getCoreUUID(), SelectType::eEntity});
+
+            // Single selection for now
+            Selector::unselectAll(SelectionCategory::eEntity);
+            Selector::select(SelectionCategory::eEntity, entity.getCoreUUID());
         }
     } // namespace editor
 } // namespace vultra

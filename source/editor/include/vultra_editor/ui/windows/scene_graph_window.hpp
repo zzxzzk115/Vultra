@@ -4,8 +4,6 @@
 
 #include <vultra/function/scenegraph/entity.hpp>
 
-#include <entt/entt.hpp>
-
 namespace vultra
 {
     class LogicScene;
@@ -13,7 +11,7 @@ namespace vultra
 
     namespace editor
     {
-        class SceneGraphWindow final : public UIWindow, public entt::emitter<SceneGraphWindow>
+        class SceneGraphWindow final : public UIWindow
         {
         public:
             SceneGraphWindow();

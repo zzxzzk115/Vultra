@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vultra_editor/event/select_event.hpp"
+#include "vultra_editor/selector.hpp"
 #include "vultra_editor/ui/ui_window.hpp"
 
 #include <vultra/function/scenegraph/components.hpp>
@@ -10,9 +10,6 @@ namespace vultra
 {
     namespace editor
     {
-        class SceneGraphWindow;
-        class AssetBrowserWindow;
-
         class InspectorWindow final : public UIWindow
         {
         public:
@@ -20,8 +17,6 @@ namespace vultra
             ~InspectorWindow() override;
 
             void onImGui() override;
-
-            void listen(SceneGraphWindow* sceneGraphWindow, AssetBrowserWindow* assetBrowserWindow);
 
         private:
             static void drawEntityProperties(Entity& entity);
@@ -31,10 +26,6 @@ namespace vultra
             static void drawComponentTransform(TransformComponent& comp);
 
             static void drawAssetProperties(const CoreUUID& assetUUID);
-
-        private:
-            CoreUUID   m_InspectUUID;
-            SelectType m_InspectType;
         };
     } // namespace editor
 } // namespace vultra

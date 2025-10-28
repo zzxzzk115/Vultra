@@ -2,15 +2,13 @@
 
 #include "vultra_editor/ui/ui_window.hpp"
 
-#include <entt/entt.hpp>
-
 #include <filesystem>
 
 namespace vultra
 {
     namespace editor
     {
-        class AssetBrowserWindow final : public UIWindow, public entt::emitter<AssetBrowserWindow>
+        class AssetBrowserWindow final : public UIWindow
         {
         public:
             AssetBrowserWindow();

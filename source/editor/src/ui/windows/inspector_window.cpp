@@ -1,7 +1,5 @@
 #include "vultra_editor/ui/windows/inspector_window.hpp"
 #include "vultra_editor/asset/asset_database.hpp"
-#include "vultra_editor/ui/windows/asset_browser_window.hpp"
-#include "vultra_editor/ui/windows/scene_graph_window.hpp"
 
 #include <vultra/function/renderer/imgui_renderer.hpp>
 
@@ -19,35 +17,25 @@ namespace vultra
         void InspectorWindow::onImGui()
         {
             ImGui::Begin(m_Name.c_str());
-            if (m_InspectType == SelectType::eEntity)
+            auto lastSelectionCategory = Selector::getLastSelectionCategory();
+            auto lastSelectionUUID     = Selector::getLastSelectionUUID();
+
+            if (lastSelectionCategory == SelectionCategory::eEntity)
             {
                 if (m_LogicScene)
                 {
-                    Entity entity = m_LogicScene->getEntityWithCoreUUID(m_InspectUUID);
+                    Entity entity = m_LogicScene->getEntityWithCoreUUID(lastSelectionUUID);
                     if (entity)
                     {
                         drawEntityProperties(entity);
                     }
                 }
             }
-            else if (m_InspectType == SelectType::eAsset)
+            else if (lastSelectionCategory == SelectionCategory::eAsset)
             {
-                drawAssetProperties(m_InspectUUID);
+                drawAssetProperties(lastSelectionUUID);
             }
             ImGui::End();
-        }
-
-        void InspectorWindow::listen(SceneGraphWindow* sceneGraphWindow, AssetBrowserWindow* assetBrowserWindow)
-        {
-            assert(sceneGraphWindow && assetBrowserWindow);
-            sceneGraphWindow->on<SelectEvent>([this](const SelectEvent& e, SceneGraphWindow&) {
-                m_InspectUUID = e.uuid;
-                m_InspectType = e.type;
-            });
-            assetBrowserWindow->on<SelectEvent>([this](const SelectEvent& e, AssetBrowserWindow&) {
-                m_InspectUUID = e.uuid;
-                m_InspectType = e.type;
-            });
         }
 
         void InspectorWindow::drawEntityProperties(Entity& entity)

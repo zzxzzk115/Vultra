@@ -105,12 +105,6 @@ namespace vultra
 
             // Initialize UIWindowManager
             m_UIWindowManager.onInit(*m_RenderDevice);
-
-            auto* inspectorWindow = m_UIWindowManager.getWindowOfType<InspectorWindow>();
-            assert(inspectorWindow);
-            auto* sceneGraphWindow   = m_UIWindowManager.getWindowOfType<SceneGraphWindow>();
-            auto* assetBrowserWindow = m_UIWindowManager.getWindowOfType<AssetBrowserWindow>();
-            inspectorWindow->listen(sceneGraphWindow, assetBrowserWindow);
         }
 
         EditorApp::~EditorApp()
