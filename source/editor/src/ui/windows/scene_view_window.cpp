@@ -12,6 +12,7 @@
 #include <imoguizmo/imoguizmo.hpp>
 
 #include <algorithm>
+#include <cmath>
 
 namespace vultra
 {
@@ -38,12 +39,14 @@ namespace vultra
 
         void SceneViewWindow::onImGui()
         {
+            float displayScale = os::Window::getPrimaryDisplayScale();
+
             // handleInput();
             ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
             ImGui::Begin(m_Name.c_str());
             ImGui::PopStyleVar();
 
-            ImGui::BeginChild("ViewportToolbar", ImVec2(0, 30), false, ImGuiWindowFlags_NoScrollbar);
+            ImGui::BeginChild("ViewportToolbar", ImVec2(0, 30 * displayScale), false, ImGuiWindowFlags_NoScrollbar);
             drawToolbar();
             ImGui::EndChild();
 
@@ -140,7 +143,7 @@ namespace vultra
             ImGui::EndChild();
 
             // Begin overlay for imoguizmo
-            float gizmoSize = 120.0f;
+            float gizmoSize = 120.0f * displayScale;
 
             ImGui::SetNextWindowSize({gizmoSize, gizmoSize});
             ImGui::SetNextWindowPos({bounds0.x, bounds0.y});
@@ -152,7 +155,7 @@ namespace vultra
                                   ImGuiWindowFlags_NoBringToFrontOnFocus);
 
             // Configure imoguizmo
-            ImOGuizmo::config.axisLengthScale = 0.12f;
+            ImOGuizmo::config.axisLengthScale = 0.12f * std::sqrt(displayScale);
 
             // specify position and size of gizmo
             ImOGuizmo::SetRect(bounds0.x, bounds0.y, gizmoSize);
