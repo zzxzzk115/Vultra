@@ -102,6 +102,9 @@ namespace vultra
 
             // Initialize UIWindowManager
             m_UIWindowManager.onInit(*m_RenderDevice);
+
+            // Log initial message
+            VULTRA_CLIENT_INFO("Vultra Editor: version {} initialized.", EDITOR_VERSION_STRING);
         }
 
         EditorApp::~EditorApp()
