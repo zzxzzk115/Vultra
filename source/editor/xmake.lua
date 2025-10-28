@@ -11,7 +11,7 @@ target("VultraEditor")
     add_headerfiles("include/(vultra_editor/**.hpp)")
 
     -- add source files
-    add_files("src/**.cpp", "imgui.ini")
+    add_files("src/**.cpp")
 
     -- add packages
     add_packages("argparse", {public = true})
@@ -20,7 +20,7 @@ target("VultraEditor")
     add_deps("VultraEngine")
 
     -- add rules
-    add_rules("linux.sdl.driver", "imguiconfig")
+    add_rules("linux.sdl.driver")
 
     -- set run arguments
     set_runargs("--project", "$(projectdir)/example_project/ExampleProject.vproj")

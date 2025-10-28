@@ -13,14 +13,17 @@
 
 #include <IconsMaterialDesignIcons.h>
 #include <imgui.h>
-
+#include <imgui_internal.h>
 
 namespace vultra
 {
     namespace editor
     {
         EditorApp::EditorApp(const std::span<char*>& args) :
-            ImGuiApp(args, {.title = "Vultra Editor", .width = 1280, .height = 720}),
+            ImGuiApp(
+                args,
+                {.title = "Vultra Editor", .width = 1280, .height = 720},
+                {.imguiIniFile = nullptr, .setDockSpace = [this](ImGuiDockNodeFlags flags) { buildDockSpace(flags); }}),
             m_Renderer(*m_RenderDevice, m_Swapchain.getFormat())
         {
             m_CurrentProject.name = "NewVultraProject";
@@ -93,12 +96,12 @@ namespace vultra
             AssetDatabase::get()->initialize(m_CurrentProject, *m_RenderDevice);
 
             // Register UI Windows
-            m_UIWindowManager.registerWindow<ConsoleWindow>();
-            m_UIWindowManager.registerWindow<AssetBrowserWindow>();
-            m_UIWindowManager.registerWindow<GameViewWindow>();
-            m_UIWindowManager.registerWindow<InspectorWindow>();
             m_UIWindowManager.registerWindow<SceneGraphWindow>();
             m_UIWindowManager.registerWindow<SceneViewWindow>();
+            m_UIWindowManager.registerWindow<GameViewWindow>();
+            m_UIWindowManager.registerWindow<AssetBrowserWindow>();
+            m_UIWindowManager.registerWindow<ConsoleWindow>();
+            m_UIWindowManager.registerWindow<InspectorWindow>();
 
             // Initialize UIWindowManager
             m_UIWindowManager.onInit(*m_RenderDevice);
@@ -207,6 +210,66 @@ namespace vultra
             }
 #endif
             ImGuiApp::onImGui();
+        }
+
+        void EditorApp::buildDockSpace(ImGuiDockNodeFlags dockSpaceFlags)
+        {
+            float   displayScale = os::Window::getPrimaryDisplayScale();
+            ImGuiID dockSpaceId  = ImGui::GetID("DockSpace");
+
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowMinSize, ImVec2(displayScale * 320.0f, displayScale * 240.0f));
+            ImGui::DockSpace(dockSpaceId, ImVec2(0.0f, 0.0f), dockSpaceFlags);
+            ImGui::PopStyleVar();
+
+            // Only build default layout the first time
+            static bool first_time = true;
+            if (!first_time)
+            {
+                return;
+            }
+            first_time = false;
+
+            ImGui::DockBuilderRemoveNode(dockSpaceId);
+            ImGui::DockBuilderAddNode(dockSpaceId, ImGuiDockNodeFlags_DockSpace);
+            ImGui::DockBuilderSetNodeSize(dockSpaceId, ImGui::GetMainViewport()->Size);
+
+            // Docking Layout:
+            ImGuiID dock_main_id = dockSpaceId;
+            ImGuiID dock_left_id =
+                ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Left, 0.75f, nullptr, &dock_main_id);
+            ImGuiID dock_right_id = dock_main_id; // Inspector
+            ImGuiID dock_left_top_id =
+                ImGui::DockBuilderSplitNode(dock_left_id, ImGuiDir_Up, 0.70f, nullptr, &dock_left_id);
+            ImGuiID dock_left_bottom_id = dock_left_id;
+            ImGuiID dock_left_top_left_id =
+                ImGui::DockBuilderSplitNode(dock_left_top_id, ImGuiDir_Left, 0.25f, nullptr, &dock_left_top_id);
+            ImGuiID dock_left_top_right_id = dock_left_top_id;
+
+            auto* sceneGraphWindow   = m_UIWindowManager.getWindowOfType<SceneGraphWindow>();
+            auto* sceneViewWindow    = m_UIWindowManager.getWindowOfType<SceneViewWindow>();
+            auto* gameViewWindow     = m_UIWindowManager.getWindowOfType<GameViewWindow>();
+            auto* assetBrowserWindow = m_UIWindowManager.getWindowOfType<AssetBrowserWindow>();
+            auto* consoleWindow      = m_UIWindowManager.getWindowOfType<ConsoleWindow>();
+            auto* inspectorWindow    = m_UIWindowManager.getWindowOfType<InspectorWindow>();
+
+            if (sceneGraphWindow)
+                ImGui::DockBuilderDockWindow(sceneGraphWindow->getName().c_str(), dock_left_top_left_id);
+
+            if (sceneViewWindow)
+                ImGui::DockBuilderDockWindow(sceneViewWindow->getName().c_str(), dock_left_top_right_id);
+            if (gameViewWindow)
+                ImGui::DockBuilderDockWindow(gameViewWindow->getName().c_str(), dock_left_top_right_id);
+
+            if (assetBrowserWindow)
+                ImGui::DockBuilderDockWindow(assetBrowserWindow->getName().c_str(), dock_left_bottom_id);
+            if (consoleWindow)
+                ImGui::DockBuilderDockWindow(consoleWindow->getName().c_str(), dock_left_bottom_id);
+
+            if (inspectorWindow)
+                ImGui::DockBuilderDockWindow(inspectorWindow->getName().c_str(), dock_right_id);
+
+            // Finalize layout
+            ImGui::DockBuilderFinish(dockSpaceId);
         }
 
         void EditorApp::drawMainMenuBar()

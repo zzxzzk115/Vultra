@@ -31,6 +31,7 @@ namespace vultra
             void onImGui() override;
 
         private:
+            void buildDockSpace(ImGuiDockNodeFlags);
             void drawMainMenuBar();
 
         private:
