@@ -24,7 +24,7 @@
 
 Vultra is based on [libvultra](https://github.com/zzxzzk115/libvultra).
 
-![Showcase](./media/images/VultraEditor_2025_10_26.png)
+![Showcase](./media/images/VultraEditor_2025_10_28.png)
 
 ## Features
 - User-friendly Editor
