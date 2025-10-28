@@ -42,6 +42,11 @@ namespace vultra
             LogicScene      m_EditingScene {"Untitled Scene"};
 
             gfx::BuiltinRenderer m_Renderer;
+
+            bool m_ShowAboutPopup {false};
+#if _DEBUG
+            bool m_ShowDemoWindow {false};
+#endif
         };
     } // namespace editor
 } // namespace vultra

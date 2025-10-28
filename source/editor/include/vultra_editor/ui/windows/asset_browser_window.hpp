@@ -2,13 +2,15 @@
 
 #include "vultra_editor/ui/ui_window.hpp"
 
+#include <entt/entt.hpp>
+
 #include <filesystem>
 
 namespace vultra
 {
     namespace editor
     {
-        class AssetBrowserWindow final : public UIWindow
+        class AssetBrowserWindow final : public UIWindow, public entt::emitter<AssetBrowserWindow>
         {
         public:
             AssetBrowserWindow();
@@ -19,6 +21,7 @@ namespace vultra
         private:
             void drawDirectoryRecursive(const std::filesystem::path& dirPath);
             void drawRightPanel();
+            void selectPath(const std::filesystem::path& path);
 
         private:
             std::filesystem::path m_AssetRoot;

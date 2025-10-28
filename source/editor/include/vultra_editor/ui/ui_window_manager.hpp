@@ -9,6 +9,9 @@ namespace vultra
 {
     namespace editor
     {
+        template<typename T>
+        concept WindowType = std::is_base_of_v<UIWindow, T>;
+
         class UIWindowManager
         {
         public:
@@ -42,12 +45,12 @@ namespace vultra
                 }
             }
 
-            void onUpdate(const fsec dt)
+            void onUpdate(const fsec dt, LogicScene* logicScene)
             {
                 for (auto& w : m_Windows)
                 {
                     if (w->m_IsOpen)
-                        w->onUpdate(dt);
+                        w->onUpdate(dt, logicScene);
                 }
             }
 
@@ -110,6 +113,15 @@ namespace vultra
                 for (auto& w : m_Windows)
                     if (w->m_Name == name)
                         return w.get();
+                return nullptr;
+            }
+
+            template<WindowType T>
+            T* getWindowOfType()
+            {
+                for (auto& w : m_Windows)
+                    if (auto* typed = dynamic_cast<T*>(w.get()))
+                        return typed;
                 return nullptr;
             }
 

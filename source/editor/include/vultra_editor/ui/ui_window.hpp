@@ -8,6 +8,8 @@
 
 namespace vultra
 {
+    class LogicScene;
+
     namespace editor
     {
         struct UIWindowRenderContext
@@ -30,7 +32,7 @@ namespace vultra
             virtual void onDestroy() {}
 
             virtual void onPreUpdate() {}
-            virtual void onUpdate(const fsec) {}
+            virtual void onUpdate(const fsec, LogicScene* logicScene) { m_LogicScene = logicScene; }
             virtual void onPhysicsUpdate(const fsec) {}
             virtual void onPostUpdate(const fsec) {}
 
@@ -48,6 +50,8 @@ namespace vultra
             bool        m_IsOpen {true};
 
             rhi::RenderDevice* m_RenderDevice {nullptr};
+
+            LogicScene* m_LogicScene {nullptr};
         };
     } // namespace editor
 } // namespace vultra

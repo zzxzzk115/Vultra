@@ -1,4 +1,5 @@
 #include "vultra_editor/ui/windows/scene_graph_window.hpp"
+#include "vultra_editor/event/select_event.hpp"
 
 #include <vultra/function/scenegraph/logic_scene.hpp>
 
@@ -184,7 +185,7 @@ namespace vultra
             bool open = ImGui::TreeNodeEx((void*)(intptr_t)id, flags, "%s", nodeLabel.c_str());
             if (ImGui::IsItemClicked())
             {
-                m_SelectedEntity = entity;
+                selectEntity(entity);
             }
 
             // --- Drag source ---
@@ -247,6 +248,12 @@ namespace vultra
             }
 
             ImGui::PopID();
+        }
+
+        void SceneGraphWindow::selectEntity(Entity& entity)
+        {
+            m_SelectedEntity = entity;
+            publish<SelectEvent>({entity.getCoreUUID(), SelectType::eEntity});
         }
     } // namespace editor
 } // namespace vultra

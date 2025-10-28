@@ -1,5 +1,6 @@
 #include "vultra_editor/ui/windows/asset_browser_window.hpp"
 #include "vultra_editor/asset/asset_database.hpp"
+#include "vultra_editor/event/select_event.hpp"
 
 #include <IconsMaterialDesignIcons.h>
 #include <imgui.h>
@@ -238,10 +239,7 @@ namespace vultra
             // Draw items
             for (const auto& path : filesToShow)
             {
-                if (path.extension() == ".vmeta")
-                    continue;
-
-                std::string name  = path.filename().string();
+                std::string name  = path.filename().stem().string();
                 bool        isDir = std::filesystem::is_directory(path);
 
                 ImGui::PushID(name.c_str());
@@ -253,14 +251,18 @@ namespace vultra
                 }
                 else
                 {
-                    std::string ext = path.extension().string();
-                    std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
-                    bool isImage = (ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".bmp" ||
-                                    ext == ".tga" || ext == ".hdr");
-
-                    if (isImage)
+                    // Only read meta files (only imported assets have meta files)
+                    if (path.extension() != ".vmeta")
                     {
-                        auto  uuid       = AssetDatabase::get()->getMetaUUID(path);
+                        ImGui::PopID();
+                        continue;
+                    }
+
+                    auto uuid       = AssetDatabase::get()->getMetaUUID(path);
+                    auto assetEntry = AssetDatabase::get()->getRegistry().lookup(uuid);
+
+                    if (assetEntry.type == vasset::VAssetType::eTexture)
+                    {
                         auto* texId      = AssetDatabase::get()->getImGuiTextureByUUID(uuid);
                         auto  imguiTexId = static_cast<ImTextureID>(reinterpret_cast<intptr_t>(texId));
 
@@ -273,6 +275,14 @@ namespace vultra
                             ImGui::Button(ICON_MDI_FILE_IMAGE, ImVec2(iconSize, iconSize));
 
                         ImGui::PopStyleVar(2);
+                    }
+                    else if (assetEntry.type == vasset::VAssetType::eMesh)
+                    {
+                        ImGui::Button(ICON_MDI_CUBE, ImVec2(iconSize, iconSize));
+                    }
+                    else if (assetEntry.type == vasset::VAssetType::eMaterial)
+                    {
+                        ImGui::Button(ICON_MDI_FORMAT_PAINT, ImVec2(iconSize, iconSize));
                     }
                     else
                     {
@@ -322,7 +332,7 @@ namespace vultra
                 if (clicked)
                 {
                     // Select file
-                    m_SelectedPath = path;
+                    selectPath(path);
                 }
 
                 // Double-click to open directory
@@ -338,6 +348,25 @@ namespace vultra
             }
 
             ImGui::Columns(1);
+        }
+
+        void AssetBrowserWindow::selectPath(const std::filesystem::path& path)
+        {
+            if (exists(path))
+            {
+                m_SelectedPath = path;
+
+                if (!std::filesystem::is_directory(path))
+                {
+                    publish<SelectEvent>({AssetDatabase::get()->getMetaUUID(path), SelectType::eAsset});
+                }
+
+                if (path.parent_path() != m_CurrentDir)
+                {
+                    m_CurrentDir     = path.parent_path();
+                    m_FocusToCurrent = true;
+                }
+            }
         }
     } // namespace editor
 } // namespace vultra

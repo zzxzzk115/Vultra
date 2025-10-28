@@ -6,11 +6,14 @@
 #include "vultra_editor/ui/windows/inspector_window.hpp"
 #include "vultra_editor/ui/windows/scene_graph_window.hpp"
 #include "vultra_editor/ui/windows/scene_view_window.hpp"
+#include "vultra_editor/version.hpp"
 
 #include <vultra/core/base/common_context.hpp>
 #include <vultra/function/scenegraph/entity.hpp>
 
+#include <IconsMaterialDesignIcons.h>
 #include <imgui.h>
+
 
 namespace vultra
 {
@@ -100,12 +103,11 @@ namespace vultra
             // Initialize UIWindowManager
             m_UIWindowManager.onInit(*m_RenderDevice);
 
-            // Bind LogicScene to SceneGraphWindow
-            auto* sceneGraphWindow = reinterpret_cast<SceneGraphWindow*>(m_UIWindowManager.find("Scene Graph"));
-            if (sceneGraphWindow)
-            {
-                sceneGraphWindow->bindLogicScene(&m_EditingScene);
-            }
+            auto* inspectorWindow = m_UIWindowManager.getWindowOfType<InspectorWindow>();
+            assert(inspectorWindow);
+            auto* sceneGraphWindow   = m_UIWindowManager.getWindowOfType<SceneGraphWindow>();
+            auto* assetBrowserWindow = m_UIWindowManager.getWindowOfType<AssetBrowserWindow>();
+            inspectorWindow->listen(sceneGraphWindow, assetBrowserWindow);
         }
 
         EditorApp::~EditorApp()
@@ -123,20 +125,17 @@ namespace vultra
         void EditorApp::onUpdate(const fsec dt)
         {
             m_Renderer.setScene(&m_EditingScene);
-            m_UIWindowManager.onUpdate(dt);
+            m_UIWindowManager.onUpdate(dt, &m_EditingScene);
 
             // TODO: Remove, test code
             auto mainCamera = m_EditingScene.getMainCamera();
             if (mainCamera)
             {
                 auto& cameraComponent = m_EditingScene.getMainCamera().getComponent<CameraComponent>();
-                auto* sceneViewWindow = m_UIWindowManager.find("Scene View");
-                if (sceneViewWindow)
-                {
-                    auto* svw                      = reinterpret_cast<SceneViewWindow*>(sceneViewWindow);
-                    cameraComponent.viewPortWidth  = svw->getViewportWidth();
-                    cameraComponent.viewPortHeight = svw->getViewportHeight();
-                }
+                auto* sceneViewWindow = m_UIWindowManager.getWindowOfType<SceneViewWindow>();
+                assert(sceneViewWindow);
+                cameraComponent.viewPortWidth  = sceneViewWindow->getViewportWidth();
+                cameraComponent.viewPortHeight = sceneViewWindow->getViewportHeight();
             }
 
             ImGuiApp::onUpdate(dt);
@@ -178,6 +177,35 @@ namespace vultra
         {
             drawMainMenuBar();
             m_UIWindowManager.onImGui();
+
+            if (m_ShowAboutPopup)
+            {
+                ImGui::OpenPopup("About Vultra Editor");
+                m_ShowAboutPopup = false;
+            }
+
+            if (ImGui::BeginPopupModal("About Vultra Editor", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+            {
+                ImGui::Text("Vultra Editor");
+                ImGui::Separator();
+                ImGui::Text("Version: %s", EDITOR_VERSION_STRING);
+                ImGui::Text("Contributors: Lazy_V (Kexuan Zhang)");
+                ImGui::Text("License: MIT");
+                ImGui::TextLinkOpenURL(ICON_MDI_GITHUB "GitHub", "https://github.com/zzxzzk115/Vultra");
+                ImGui::Spacing();
+                if (ImGui::Button("Close"))
+                {
+                    ImGui::CloseCurrentPopup();
+                }
+                ImGui::EndPopup();
+            }
+
+#if _DEBUG
+            if (m_ShowDemoWindow)
+            {
+                ImGui::ShowDemoWindow();
+            }
+#endif
             ImGuiApp::onImGui();
         }
 
@@ -198,6 +226,22 @@ namespace vultra
                 {
                     for (const auto& w : m_UIWindowManager.getWindows())
                         ImGui::MenuItem(w->getName().c_str(), nullptr, &w->isOpen());
+
+#if _DEBUG
+                    ImGui::Separator();
+                    ImGui::MenuItem("ImGui Demo Window", nullptr, &m_ShowDemoWindow);
+#endif
+
+                    ImGui::EndMenu();
+                }
+
+                if (ImGui::BeginMenu("Help"))
+                {
+                    if (ImGui::MenuItem("About Vultra Editor"))
+                    {
+                        m_ShowAboutPopup = true;
+                    }
+
                     ImGui::EndMenu();
                 }
 

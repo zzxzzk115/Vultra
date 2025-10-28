@@ -4,6 +4,8 @@
 
 #include <vultra/function/scenegraph/entity.hpp>
 
+#include <entt/entt.hpp>
+
 namespace vultra
 {
     class LogicScene;
@@ -11,22 +13,19 @@ namespace vultra
 
     namespace editor
     {
-        class SceneGraphWindow final : public UIWindow
+        class SceneGraphWindow final : public UIWindow, public entt::emitter<SceneGraphWindow>
         {
         public:
             SceneGraphWindow();
             ~SceneGraphWindow() override;
 
-            void bindLogicScene(LogicScene* scene) { m_LogicScene = scene; }
-
             void onImGui() override;
 
         private:
             void drawEntityNode(Entity& entity);
+            void selectEntity(Entity& entity);
 
         private:
-            LogicScene* m_LogicScene {nullptr};
-
             Entity              m_SelectedEntity;
             std::vector<Entity> m_PendingDeleteEntities;
             Entity              m_RenamingEntity;
