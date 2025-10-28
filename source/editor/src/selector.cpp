@@ -1,9 +1,26 @@
 #include "vultra_editor/selector.hpp"
 
+#include <vultra/core/base/common_context.hpp>
+
 namespace vultra
 {
     namespace editor
     {
+        std::string to_string(SelectionCategory category)
+        {
+            switch (category)
+            {
+                case SelectionCategory::eNone:
+                    return "None";
+                case SelectionCategory::eEntity:
+                    return "Entity";
+                case SelectionCategory::eAsset:
+                    return "Asset";
+                default:
+                    return "Unknown";
+            }
+        }
+
         std::unordered_map<SelectionCategory, std::vector<CoreUUID>> Selector::s_SelectionMap;
         SelectionCategory Selector::s_LastSelectionCategory = SelectionCategory::eNone;
         CoreUUID          Selector::s_LastSelectionUUID;
@@ -20,6 +37,8 @@ namespace vultra
 
             s_LastSelectionCategory = category;
             s_LastSelectionUUID     = selectionId;
+
+            VULTRA_CLIENT_TRACE("Selected ID: {} in category: {}", selectionId.toString(), to_string(category));
         }
 
         void Selector::unselect(SelectionCategory category, CoreUUID selectionId)

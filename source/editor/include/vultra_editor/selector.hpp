@@ -2,7 +2,6 @@
 
 #include <vultra/core/base/uuid.hpp>
 
-#include <optional>
 #include <unordered_map>
 #include <vector>
 
@@ -16,6 +15,8 @@ namespace vultra
             eEntity,
             eAsset
         };
+
+        std::string to_string(SelectionCategory category);
 
         class Selector
         {
