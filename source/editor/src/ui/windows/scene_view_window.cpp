@@ -39,7 +39,6 @@ namespace vultra
         void SceneViewWindow::onImGui()
         {
             // handleInput();
-
             ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
             ImGui::Begin(m_Name.c_str());
             ImGui::PopStyleVar();
@@ -140,10 +139,17 @@ namespace vultra
 
             ImGui::EndChild();
 
-            ImGui::End();
-
             // Begin overlay for imoguizmo
             float gizmoSize = 120.0f;
+
+            ImGui::SetNextWindowSize({gizmoSize, gizmoSize});
+            ImGui::SetNextWindowPos({bounds0.x, bounds0.y});
+            ImGui::BeginChild("ImoGuizmoOverlay",
+                              ImVec2(gizmoSize, gizmoSize),
+                              0,
+                              ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs |
+                                  ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing |
+                                  ImGuiWindowFlags_NoBringToFrontOnFocus);
 
             // Configure imoguizmo
             ImOGuizmo::config.axisLengthScale = 0.12f;
@@ -152,7 +158,7 @@ namespace vultra
             ImOGuizmo::SetRect(bounds0.x, bounds0.y, gizmoSize);
 
             // Begin imoguizmo frame, will call ImGui::Begin and ImGui::End internally to create a no decoration window
-            ImOGuizmo::BeginFrame();
+            // ImOGuizmo::BeginFrame();
 
             // set distance to pivot (-> activates interaction)
             // distance to pivot is actually the distance from camera to the world space origin (0,0,0)
@@ -173,6 +179,10 @@ namespace vultra
                 camera.getComponent<TransformComponent>().setRotation(rotation);
                 camera.getComponent<TransformComponent>().scale = scale;
             }
+
+            ImGui::EndChild();
+
+            ImGui::End();
         }
 
         void SceneViewWindow::onRender(UIWindowRenderContext& ctx)

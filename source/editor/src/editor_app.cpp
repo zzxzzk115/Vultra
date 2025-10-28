@@ -89,9 +89,6 @@ namespace vultra
             auto& rawMeshTransform = rawMesh.getComponent<TransformComponent>();
             rawMeshTransform.setRotationEuler({0.0f, 45.0f, 0.0f});
 
-            auto testChild = m_EditingScene.createEntity("Child of DamagedHelmet");
-            rawMesh.addChild(testChild.getCoreUUID());
-
             // Initialize Asset Database
             AssetDatabase::get()->initialize(m_CurrentProject, *m_RenderDevice);
 
