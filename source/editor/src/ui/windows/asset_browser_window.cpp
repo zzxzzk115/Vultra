@@ -84,7 +84,7 @@ namespace vultra
             {
                 ImGui::OpenPopup("Rename Asset");
                 m_RequestRenamePopup = false;
-                m_RenameFirstFrame = true;
+                m_RenameFirstFrame   = true;
             }
 
             if (ImGui::BeginPopupModal("Rename Asset", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
@@ -101,50 +101,32 @@ namespace vultra
                                  IM_ARRAYSIZE(m_RenameBuffer),
                                  ImGuiInputTextFlags_EnterReturnsTrue);
 
-                if ((ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_Escape)) &&
-                    !m_RenamingPath.empty())
-                {
-                    if (ImGui::IsKeyPressed(ImGuiKey_Enter))
-                    {
-                        auto newPath = m_RenamingPath.parent_path() / m_RenameBuffer;
-                        std::filesystem::rename(m_RenamingPath, newPath);
-
-                        auto metaPath = std::filesystem::path(m_RenamingPath.string() + ".vmeta");
-                        if (std::filesystem::exists(metaPath))
-                        {
-                            auto newMetaPath = std::filesystem::path(newPath.string() + ".vmeta");
-                            std::filesystem::rename(metaPath, newMetaPath);
-                        }
-                    }
-                    m_RenamingPath = std::filesystem::path();
-                    ImGui::CloseCurrentPopup();
-                    firstFrame = true;
-                }
-
-                if (ImGui::Button("OK"))
-                {
+                const auto renamePath = [this](const std::string& parentDir) {
                     if (!m_RenamingPath.empty())
                     {
-                        auto newPath = m_RenamingPath.parent_path() / m_RenameBuffer;
-                        std::filesystem::rename(m_RenamingPath, newPath);
-
-                        auto metaPath = std::filesystem::path(m_RenamingPath.string() + ".vmeta");
-                        if (std::filesystem::exists(metaPath))
-                        {
-                            auto newMetaPath = std::filesystem::path(newPath.string() + ".vmeta");
-                            std::filesystem::rename(metaPath, newMetaPath);
-                        }
+                        auto metaUUID = AssetDatabase::get()->getMetaUUID(m_RenamingPath);
+                        AssetDatabase::get()->renameAsset(
+                            metaUUID, m_RenamingPath.stem().string(), m_RenameBuffer, parentDir);
                     }
+                };
+
+                const auto closePopup = [this]() {
                     m_RenamingPath = std::filesystem::path();
                     ImGui::CloseCurrentPopup();
-                    firstFrame = true;
-                }
-                ImGui::SameLine();
-                if (ImGui::Button("Cancel"))
+                    m_RenameFirstFrame = true;
+                };
+
+                if (ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::Button("OK"))
                 {
-                    m_RenamingPath = std::filesystem::path();
-                    ImGui::CloseCurrentPopup();
-                    firstFrame = true;
+                    renamePath(m_RenamingPath.parent_path().string());
+                    closePopup();
+                }
+
+                ImGui::SameLine();
+
+                if (ImGui::IsKeyPressed(ImGuiKey_Escape) || ImGui::Button("Cancel"))
+                {
+                    closePopup();
                 }
 
                 ImGui::EndPopup();
@@ -309,7 +291,7 @@ namespace vultra
             // Draw items
             for (const auto& path : filesToShow)
             {
-                std::string name  = path.filename().stem().string();
+                std::string name  = path.stem().string();
                 bool        isDir = std::filesystem::is_directory(path);
 
                 ImGui::PushID(name.c_str());
@@ -436,7 +418,7 @@ namespace vultra
                     if (ImGui::MenuItem("Rename"))
                     {
                         m_RenamingPath = path;
-                        strncpy(m_RenameBuffer, path.filename().string().c_str(), sizeof(m_RenameBuffer));
+                        strncpy(m_RenameBuffer, path.stem().string().c_str(), sizeof(m_RenameBuffer));
                         m_RequestRenamePopup = true;
                     }
                     ImGui::EndPopup();

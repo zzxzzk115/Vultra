@@ -12,6 +12,11 @@ namespace vultra
 {
     namespace editor
     {
+        constexpr const char* ASSET_REGISTRY_FILE = "asset_registry.json";
+        constexpr const char* ASSET_IMPORT_FOLDER = "Assets";
+        constexpr const char* ASSET_EXPORT_FOLDER = ".imported";
+        constexpr const char* META_FILE_EXTENSION = ".vmeta";
+
         AssetDatabase* AssetDatabase::s_Instance = nullptr;
 
         AssetDatabase::AssetDatabase() : m_AssetImporter(m_AssetRegistry) {}
@@ -30,11 +35,17 @@ namespace vultra
             m_Project      = project;
             m_RenderDevice = &rd;
 
-            std::string workingFolder  = project.directory;
-            std::string assetFolder    = project.directory + "/Assets";
-            std::string importedFolder = project.directory + "/.imported";
+            // Setup paths
+            m_Paths.workingDir   = project.directory;
+            m_Paths.assetDir     = m_Paths.workingDir / ASSET_IMPORT_FOLDER;
+            m_Paths.importedDir  = m_Paths.workingDir / ASSET_EXPORT_FOLDER;
+            m_Paths.registryFile = m_Paths.importedDir / ASSET_REGISTRY_FILE;
 
-            std::string outputRegistryFile = importedFolder + "/asset_registry.json";
+            // Get string paths
+            std::string workingFolder      = m_Paths.workingDir.string();
+            std::string assetFolder        = m_Paths.assetDir.string();
+            std::string importedFolder     = m_Paths.importedDir.string();
+            std::string outputRegistryFile = m_Paths.registryFile.string();
 
             m_AssetRegistry.setImportedFolder(importedFolder);
             if (std::filesystem::exists(outputRegistryFile))
@@ -72,10 +83,78 @@ namespace vultra
             }
         }
 
+        bool AssetDatabase::renameAsset(const vasset::VUUID& uuid,
+                                        const std::string&   oldName,
+                                        const std::string&   newName,
+                                        const std::string&   parentDir)
+        {
+            // Find asset entry
+            auto entry = m_AssetRegistry.lookup(uuid);
+            if (entry.path.empty())
+            {
+                return false;
+            }
+
+            try
+            {
+                auto parentPath = std::filesystem::path(parentDir);
+                auto oldPath    = parentPath / oldName;
+                auto newPath    = parentPath / newName;
+
+                // Rename meta file
+                std::filesystem::path assetMetaPath    = oldPath.replace_extension(META_FILE_EXTENSION);
+                std::filesystem::path newAssetMetaPath = newPath.replace_extension(META_FILE_EXTENSION);
+                std::filesystem::rename(assetMetaPath, newAssetMetaPath);
+
+                // File same name asset file (e.g., .png, .fbx) and rename it
+                for (const auto& entry : std::filesystem::directory_iterator(parentPath))
+                {
+                    const auto& entryPath = entry.path();
+                    if (entryPath == assetMetaPath)
+                        continue;
+
+                    if (entryPath.stem() == oldName)
+                    {
+                        auto newAssetPath = entryPath.parent_path() / (newName + entryPath.extension().string());
+                        std::filesystem::rename(entryPath, newAssetPath);
+                        break;
+                    }
+                }
+
+                // Get imported path
+                std::filesystem::path importedPath = m_Paths.importedDir / entry.path;
+
+                // Get old and new imported paths
+                const auto& oldImportedPath = importedPath;
+                auto newImportedPath = importedPath.parent_path() / (newName + importedPath.extension().string());
+
+                // Update asset registry
+                if (!m_AssetRegistry.updateRegistry(
+                        uuid, std::filesystem::relative(newImportedPath, m_Paths.importedDir).string()))
+                {
+                    VULTRA_CORE_ERROR("Failed to update asset registry");
+                    return false;
+                }
+
+                // Rename imported file
+                std::filesystem::rename(oldImportedPath, newImportedPath);
+
+                // Save registry
+                m_AssetRegistry.save(m_Paths.registryFile.string());
+            }
+            catch (const std::exception& e)
+            {
+                VULTRA_CORE_ERROR("Failed to rename asset: {}", e.what());
+                return false;
+            }
+
+            return true;
+        }
+
         Ref<rhi::Texture> AssetDatabase::getTextureByUUID(const vasset::VUUID& uuid)
         {
             auto uuidStr = uuid.toString();
-            auto it = m_Textures.find(uuidStr);
+            auto it      = m_Textures.find(uuidStr);
             if (it != m_Textures.end())
             {
                 return it->second;
@@ -86,7 +165,7 @@ namespace vultra
         imgui::ImGuiTextureID AssetDatabase::getImGuiTextureByUUID(const vasset::VUUID& uuid)
         {
             auto uuidStr = uuid.toString();
-            auto it = m_ImGuiTextures.find(uuidStr);
+            auto it      = m_ImGuiTextures.find(uuidStr);
             if (it != m_ImGuiTextures.end())
             {
                 return it->second;
@@ -122,7 +201,7 @@ namespace vultra
         vasset::VUUID AssetDatabase::getMetaUUID(const std::filesystem::path& assetPath)
         {
             std::filesystem::path metaPath = assetPath;
-            metaPath.replace_extension(".vmeta");
+            metaPath.replace_extension(META_FILE_EXTENSION);
 
             if (!std::filesystem::exists(metaPath))
             {

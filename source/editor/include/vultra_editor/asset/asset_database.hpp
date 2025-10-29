@@ -19,6 +19,11 @@ namespace vultra
 
             void initialize(const engine::Project& project, rhi::RenderDevice& rd);
 
+            bool renameAsset(const vasset::VUUID& uuid,
+                             const std::string&   oldName,
+                             const std::string&   newName,
+                             const std::string&   parentDir);
+
             vasset::VAssetRegistry& getRegistry() { return m_AssetRegistry; }
             vasset::VAssetImporter& getImporter() { return m_AssetImporter; }
 
@@ -36,11 +41,20 @@ namespace vultra
             static vasset::VUUID getMetaUUID(const std::filesystem::path& assetPath);
 
         private:
+            struct AssetPaths
+            {
+                std::filesystem::path workingDir;
+                std::filesystem::path assetDir;
+                std::filesystem::path importedDir;
+                std::filesystem::path registryFile;
+            };
+
             rhi::RenderDevice* m_RenderDevice {nullptr};
 
             vasset::VAssetRegistry m_AssetRegistry;
             vasset::VAssetImporter m_AssetImporter;
             engine::Project        m_Project;
+            AssetPaths             m_Paths;
 
             // UUID string to Texture
             std::unordered_map<std::string, Ref<rhi::Texture>> m_Textures;
