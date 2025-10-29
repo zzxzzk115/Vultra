@@ -28,7 +28,7 @@ namespace vultra
 
             m_ReimportProgressWidget.setFinishedCallback([this]() { m_ShowReimportMsgBox = true; });
 
-            static const char* buttons[] = {"OK"};
+            static const char* buttons[] = {"OK", nullptr};
             m_ReimportMsgBox.Init("Reimport##MsgBox", nullptr, "Reimport completed.", buttons);
         }
 
