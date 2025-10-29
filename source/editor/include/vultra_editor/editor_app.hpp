@@ -46,7 +46,8 @@ namespace vultra
 
             bool m_ShowAboutPopup {false};
 #if _DEBUG
-            bool m_ShowDemoWindow {false};
+            bool m_ShowImGuiDemoWindow {false};
+            bool m_ShowImPlotDemoWindow {false};
 #endif
         };
     } // namespace editor

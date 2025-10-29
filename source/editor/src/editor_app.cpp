@@ -14,6 +14,7 @@
 #include <IconsMaterialDesignIcons.h>
 #include <imgui.h>
 #include <imgui_internal.h>
+#include <implot/implot.h>
 
 namespace vultra
 {
@@ -198,9 +199,13 @@ namespace vultra
             }
 
 #if _DEBUG
-            if (m_ShowDemoWindow)
+            if (m_ShowImGuiDemoWindow)
             {
                 ImGui::ShowDemoWindow();
+            }
+            if (m_ShowImPlotDemoWindow)
+            {
+                ImPlot::ShowDemoWindow();
             }
 #endif
             ImGuiApp::onImGui();
@@ -286,7 +291,8 @@ namespace vultra
 
 #if _DEBUG
                     ImGui::Separator();
-                    ImGui::MenuItem("ImGui Demo Window", nullptr, &m_ShowDemoWindow);
+                    ImGui::MenuItem("ImGui Demo Window", nullptr, &m_ShowImGuiDemoWindow);
+                    ImGui::MenuItem("ImPlot Demo Window", nullptr, &m_ShowImPlotDemoWindow);
 #endif
 
                     ImGui::EndMenu();
