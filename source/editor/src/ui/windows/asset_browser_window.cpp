@@ -343,6 +343,33 @@ namespace vultra
                     m_SelectedPath.clear();
                 }
 
+                if (hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Right))
+                {
+                    selectPath(path);
+                    ImGui::OpenPopup("asset_browser_context");
+                }
+
+                if (ImGui::BeginPopup("asset_browser_context"))
+                {
+                    if (ImGui::MenuItem("Reimport"))
+                    {
+                        // TODO: Reimport logic
+                    }
+                    if (ImGui::MenuItem("Create"))
+                    {
+                        // TODO: Create logic
+                    }
+                    if (ImGui::MenuItem("Delete"))
+                    {
+                        // TODO: Delete logic
+                    }
+                    if (ImGui::MenuItem("Rename"))
+                    {
+                        // TODO: Rename logic
+                    }
+                    ImGui::EndPopup();
+                }
+
                 ImGui::NextColumn();
                 ImGui::PopID();
             }
