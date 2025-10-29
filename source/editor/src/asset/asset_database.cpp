@@ -58,6 +58,7 @@ namespace vultra
             }
 
             m_AssetRegistry.save(outputRegistryFile);
+            m_AssetRegistry.cleanup();
 
             // Load all textures to memory
             for (const auto& [uuidStr, entry] : m_AssetRegistry.getRegistry())
@@ -163,6 +164,8 @@ namespace vultra
                 return false;
             }
 
+            m_AssetRegistry.cleanup();
+
             // Update textures and ImGui textures if needed
             auto entry = m_AssetRegistry.lookup(metaUUID);
             if (entry.type == vasset::VAssetType::eTexture)
@@ -195,7 +198,14 @@ namespace vultra
         {
             assert(std::filesystem::exists(folderPath) && std::filesystem::is_directory(folderPath));
 
-            return m_AssetImporter.importOrReimportAssetFolder(folderPath.string(), true);
+            if (!m_AssetImporter.importOrReimportAssetFolder(folderPath.string(), true))
+            {
+                return false;
+            }
+
+            m_AssetRegistry.cleanup();
+
+            return true;
         }
 
         Ref<rhi::Texture> AssetDatabase::getTextureByUUID(const vasset::VUUID& uuid)
