@@ -39,9 +39,10 @@ namespace vultra
 
         void SceneViewWindow::onImGui()
         {
-            float displayScale = os::Window::getPrimaryDisplayScale();
+            float displayScale = ImGui::GetStyle().FontScaleDpi;
 
-            // handleInput();
+            handleInput();
+
             ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
             ImGui::Begin(m_Name.c_str());
             ImGui::PopStyleVar();
@@ -307,14 +308,13 @@ namespace vultra
                 ImGui::SameLine();
                 if (ImGui::Button(ICON_MDI_HAND_BACK_RIGHT))
                     m_GuizmoOperation = -1;
+                if (selected)
+                    ImGui::PopStyleColor();
 
                 if (ImGui::IsItemHovered())
                 {
-                    ImGui::SetTooltip("Grab the screen to move the viewport.");
+                    ImGui::SetTooltip("Grab the screen to move the viewport. (Q)");
                 }
-
-                if (selected)
-                    ImGui::PopStyleColor();
             }
             ImGui::SameLine();
 
@@ -325,14 +325,13 @@ namespace vultra
                 ImGui::SameLine();
                 if (ImGui::Button(ICON_MDI_ARROW_ALL))
                     m_GuizmoOperation = ImGuizmo::OPERATION::TRANSLATE;
+                if (selected)
+                    ImGui::PopStyleColor();
 
                 if (ImGui::IsItemHovered())
                 {
-                    ImGui::SetTooltip("Translate the selected object.");
+                    ImGui::SetTooltip("Translate the selected object. (W)");
                 }
-
-                if (selected)
-                    ImGui::PopStyleColor();
             }
             ImGui::SameLine();
 
@@ -343,14 +342,13 @@ namespace vultra
                 ImGui::SameLine();
                 if (ImGui::Button(ICON_MDI_ROTATE_3D_VARIANT))
                     m_GuizmoOperation = ImGuizmo::OPERATION::ROTATE;
+                if (selected)
+                    ImGui::PopStyleColor();
 
                 if (ImGui::IsItemHovered())
                 {
-                    ImGui::SetTooltip("Rotate the selected object.");
+                    ImGui::SetTooltip("Rotate the selected object. (E)");
                 }
-
-                if (selected)
-                    ImGui::PopStyleColor();
             }
             ImGui::SameLine();
 
@@ -361,14 +359,13 @@ namespace vultra
                 ImGui::SameLine();
                 if (ImGui::Button(ICON_MDI_ARROW_EXPAND_ALL))
                     m_GuizmoOperation = ImGuizmo::OPERATION::SCALE;
+                if (selected)
+                    ImGui::PopStyleColor();
 
                 if (ImGui::IsItemHovered())
                 {
-                    ImGui::SetTooltip("Scale the selected object.");
+                    ImGui::SetTooltip("Scale the selected object. (R)");
                 }
-
-                if (selected)
-                    ImGui::PopStyleColor();
             }
             ImGui::SameLine();
 
