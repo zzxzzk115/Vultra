@@ -2,6 +2,8 @@
 
 #include "vultra_editor/ui/ui_window.hpp"
 
+#include <vultra/function/renderer/imgui_renderer.hpp>
+
 #include <filesystem>
 
 namespace vultra
@@ -27,9 +29,7 @@ namespace vultra
             std::filesystem::path m_SelectedPath;
             std::filesystem::path m_RenamingPath;
 
-            char m_RenameBuffer[256] {0};
-            bool m_RequestRenamePopup {false};
-            bool m_RenameFirstFrame {false};
+            ImGuiExt::RenamePopupWidget m_RenamePopupWidget;
 
             char  m_FilterBuffer[128] {0};
             float m_LeftPanelRatio {0.3f};

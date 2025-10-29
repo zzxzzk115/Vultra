@@ -10,7 +10,15 @@ namespace vultra
 {
     namespace editor
     {
-        SceneGraphWindow::SceneGraphWindow() : UIWindow("Scene Graph") {}
+        SceneGraphWindow::SceneGraphWindow() : UIWindow("Scene Graph")
+        {
+            m_RenamePopupWidget.setRenameCallback([this](const char* newName) {
+                if (m_RenamingEntity)
+                {
+                    m_RenamingEntity.setName(newName);
+                }
+            });
+        }
 
         SceneGraphWindow::~SceneGraphWindow() = default;
 
@@ -25,8 +33,7 @@ namespace vultra
                     ImGui::IsKeyPressed(ImGuiKey_F2))
                 {
                     m_RenamingEntity = m_SelectedEntity;
-                    strncpy(m_RenameBuffer, m_SelectedEntity.getName().c_str(), sizeof(m_RenameBuffer));
-                    m_RequestRenamePopup = true;
+                    m_RenamePopupWidget.open(m_SelectedEntity.getName().c_str());
                 }
 
                 if (ImGui::BeginTable("scene_graph_table",
@@ -73,7 +80,8 @@ namespace vultra
                     {
                         if (ImGui::MenuItem("Create Empty Entity"))
                         {
-                            m_LogicScene->createEntity("New Entity");
+                            auto entity = m_LogicScene->createEntity("New Entity");
+                            entity.addComponent<TransformComponent>();
                         }
                         ImGui::EndPopup();
                     }
@@ -91,57 +99,7 @@ namespace vultra
                     }
                 }
 
-                // --- Deferred rename popup open ---
-                if (m_RequestRenamePopup)
-                {
-                    ImGui::OpenPopup("Rename Entity");
-                    m_RequestRenamePopup = false;
-                }
-
-                // --- Rename modal popup ---
-                if (ImGui::BeginPopupModal("Rename Entity", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
-                {
-                    static bool firstFrame = true;
-                    if (firstFrame)
-                    {
-                        ImGui::SetKeyboardFocusHere(0);
-                        firstFrame = false;
-                    }
-
-                    ImGui::Separator();
-                    ImGui::InputText("##rename_input",
-                                     m_RenameBuffer,
-                                     IM_ARRAYSIZE(m_RenameBuffer),
-                                     ImGuiInputTextFlags_EnterReturnsTrue);
-
-                    if ((ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyPressed(ImGuiKey_Escape)) &&
-                        m_RenamingEntity)
-                    {
-                        if (ImGui::IsKeyPressed(ImGuiKey_Enter))
-                            m_RenamingEntity.setName(m_RenameBuffer);
-                        m_RenamingEntity = Entity();
-                        ImGui::CloseCurrentPopup();
-                        firstFrame = true;
-                    }
-
-                    if (ImGui::Button("OK"))
-                    {
-                        if (m_RenamingEntity)
-                            m_RenamingEntity.setName(m_RenameBuffer);
-                        m_RenamingEntity = Entity();
-                        ImGui::CloseCurrentPopup();
-                        firstFrame = true;
-                    }
-                    ImGui::SameLine();
-                    if (ImGui::Button("Cancel"))
-                    {
-                        m_RenamingEntity = Entity();
-                        ImGui::CloseCurrentPopup();
-                        firstFrame = true;
-                    }
-
-                    ImGui::EndPopup();
-                }
+                m_RenamePopupWidget.onImGui("Rename Entity");
             }
             else
             {
@@ -202,8 +160,7 @@ namespace vultra
                 if (ImGui::MenuItem("Rename"))
                 {
                     m_RenamingEntity = entity;
-                    strncpy(m_RenameBuffer, entity.getName().c_str(), sizeof(m_RenameBuffer));
-                    m_RequestRenamePopup = true; // delayed popup open
+                    m_RenamePopupWidget.open(entity.getName().c_str());
                 }
                 if (ImGui::MenuItem("Delete Entity"))
                 {

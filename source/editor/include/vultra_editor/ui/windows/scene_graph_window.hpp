@@ -2,6 +2,7 @@
 
 #include "vultra_editor/ui/ui_window.hpp"
 
+#include <vultra/function/renderer/imgui_renderer.hpp>
 #include <vultra/function/scenegraph/entity.hpp>
 
 namespace vultra
@@ -27,8 +28,8 @@ namespace vultra
             Entity              m_SelectedEntity;
             std::vector<Entity> m_PendingDeleteEntities;
             Entity              m_RenamingEntity;
-            char                m_RenameBuffer[256] {0};
-            bool                m_RequestRenamePopup {false};
+
+            ImGuiExt::RenamePopupWidget m_RenamePopupWidget;
         };
     } // namespace editor
 } // namespace vultra
