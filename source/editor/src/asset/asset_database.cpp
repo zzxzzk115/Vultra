@@ -3,8 +3,6 @@
 #include <vultra/function/renderer/texture_manager.hpp>
 #include <vultra/function/resource/resource.hpp>
 
-#include <nlohmann/json.hpp>
-
 #include <filesystem>
 #include <fstream>
 
@@ -101,25 +99,25 @@ namespace vultra
                 auto oldPath    = parentPath / oldName;
                 auto newPath    = parentPath / newName;
 
-                // Rename meta file
+                // Get old and new meta file paths
                 std::filesystem::path assetMetaPath    = oldPath.replace_extension(META_FILE_EXTENSION);
                 std::filesystem::path newAssetMetaPath = newPath.replace_extension(META_FILE_EXTENSION);
-                std::filesystem::rename(assetMetaPath, newAssetMetaPath);
 
-                // File same name asset file (e.g., .png, .fbx) and rename it
-                for (const auto& entry : std::filesystem::directory_iterator(parentPath))
+                // Get original asset file path from meta
+                auto originalFileExtension = getMetaExtension(assetMetaPath);
+                if (originalFileExtension.empty())
                 {
-                    const auto& entryPath = entry.path();
-                    if (entryPath == assetMetaPath)
-                        continue;
-
-                    if (entryPath.stem() == oldName)
-                    {
-                        auto newAssetPath = entryPath.parent_path() / (newName + entryPath.extension().string());
-                        std::filesystem::rename(entryPath, newAssetPath);
-                        break;
-                    }
+                    VULTRA_CORE_ERROR("Failed to get original asset file extension from meta");
+                    return false;
                 }
+                auto oldPathCopy      = oldPath;
+                auto originalFilePath = oldPathCopy.replace_extension(originalFileExtension);
+                // Get new original asset file path
+                auto newAssetPath = originalFilePath.parent_path() / (newName + originalFilePath.extension().string());
+
+                // Rename files
+                std::filesystem::rename(assetMetaPath, newAssetMetaPath);
+                std::filesystem::rename(originalFilePath, newAssetPath);
 
                 // Get imported path
                 std::filesystem::path importedPath = m_Paths.importedDir / entry.path;
@@ -200,23 +198,7 @@ namespace vultra
 
         vasset::VUUID AssetDatabase::getMetaUUID(const std::filesystem::path& assetPath)
         {
-            std::filesystem::path metaPath = assetPath;
-            metaPath.replace_extension(META_FILE_EXTENSION);
-
-            if (!std::filesystem::exists(metaPath))
-            {
-                return vasset::VUUID {};
-            }
-
-            // Load meta file
-            std::ifstream inFile(metaPath);
-            if (!inFile.is_open())
-            {
-                return vasset::VUUID {};
-            }
-
-            nlohmann::json j;
-            inFile >> j;
+            nlohmann::json j = getMetaJson(assetPath);
 
             if (j.contains("uuid"))
             {
@@ -225,6 +207,35 @@ namespace vultra
             }
 
             return vasset::VUUID {};
+        }
+
+        std::string AssetDatabase::getMetaExtension(const std::filesystem::path& assetPath)
+        {
+            nlohmann::json j = getMetaJson(assetPath);
+
+            if (j.contains("extension"))
+            {
+                return j["extension"].get<std::string>();
+            }
+
+            return {};
+        }
+
+        nlohmann::json AssetDatabase::getMetaJson(const std::filesystem::path& assetPath)
+        {
+            std::filesystem::path metaPath = assetPath;
+            metaPath.replace_extension(META_FILE_EXTENSION);
+
+            std::ifstream inFile(metaPath);
+            if (!inFile.is_open())
+            {
+                return nlohmann::json {};
+            }
+
+            nlohmann::json j;
+            inFile >> j;
+            inFile.close();
+            return j;
         }
     } // namespace editor
 } // namespace vultra

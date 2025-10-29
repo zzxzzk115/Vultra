@@ -5,6 +5,8 @@
 #include <vultra/function/renderer/imgui_renderer.hpp>
 #include <vultra_engine/project/project.hpp>
 
+#include <nlohmann/json.hpp>
+
 #include <filesystem>
 
 namespace vultra
@@ -39,6 +41,10 @@ namespace vultra
             static void           destroy();
 
             static vasset::VUUID getMetaUUID(const std::filesystem::path& assetPath);
+            static std::string   getMetaExtension(const std::filesystem::path& assetPath);
+
+        private:
+            static nlohmann::json getMetaJson(const std::filesystem::path& assetPath);
 
         private:
             struct AssetPaths
