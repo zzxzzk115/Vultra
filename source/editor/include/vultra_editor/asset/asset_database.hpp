@@ -26,6 +26,8 @@ namespace vultra
                              const std::string&   newName,
                              const std::string&   parentDir);
 
+            bool reimportAsset(const std::filesystem::path& assetPath);
+
             vasset::VAssetRegistry& getRegistry() { return m_AssetRegistry; }
             vasset::VAssetImporter& getImporter() { return m_AssetImporter; }
 

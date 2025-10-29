@@ -64,7 +64,7 @@ namespace vultra
             {
                 if (entry.type == vasset::VAssetType::eTexture)
                 {
-                    auto texturePath = std::filesystem::path(importedFolder) / entry.path;
+                    auto texturePath = m_Paths.importedDir / entry.path;
                     auto texture     = resource::loadResource<gfx::TextureManager>(texturePath.generic_string());
                     if (!texture)
                     {
@@ -144,6 +144,46 @@ namespace vultra
             {
                 VULTRA_CORE_ERROR("Failed to rename asset: {}", e.what());
                 return false;
+            }
+
+            return true;
+        }
+
+        bool AssetDatabase::reimportAsset(const std::filesystem::path& assetPath)
+        {
+            auto metaUUID          = getMetaUUID(assetPath);
+            auto metaExt           = getMetaExtension(assetPath);
+            auto assetPathCopy     = assetPath;
+            auto originalAssetPath = assetPathCopy.replace_extension(metaExt);
+
+            if (!m_AssetImporter.importOrReimportAsset(originalAssetPath.string(), true))
+            {
+                return false;
+            }
+
+            // Update textures and ImGui textures if needed
+            auto entry = m_AssetRegistry.lookup(metaUUID);
+            if (entry.type == vasset::VAssetType::eTexture)
+            {
+                auto texturePath = m_Paths.importedDir / entry.path;
+
+                // We don't use resource::loadResource here to ensure we don't get a cached version
+                gfx::TextureLoader tmpTextureLoader {};
+
+                auto texture = tmpTextureLoader(texturePath.generic_string(), *m_RenderDevice);
+                if (!texture)
+                {
+                    VULTRA_CORE_ERROR("Failed to load texture asset: {}", entry.path);
+                    return false;
+                }
+
+                auto uuidStr = metaUUID.toString();
+
+                // Store texture
+                m_Textures[uuidStr] = texture;
+
+                // Add imgui texture
+                m_ImGuiTextures[uuidStr] = imgui::addTexture(*texture);
             }
 
             return true;

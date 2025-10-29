@@ -365,7 +365,10 @@ namespace vultra
                 {
                     if (ImGui::MenuItem("Reimport"))
                     {
-                        // TODO: Reimport logic
+                        if (!AssetDatabase::get()->reimportAsset(path))
+                        {
+                            VULTRA_CLIENT_ERROR("Failed to reimport asset: {}", path.string());
+                        }
                     }
                     if (ImGui::MenuItem("Create"))
                     {
