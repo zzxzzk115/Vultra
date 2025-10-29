@@ -51,8 +51,8 @@ namespace vultra
                 m_AssetRegistry.load(outputRegistryFile);
             }
 
-            m_AssetImporter.importAssetFolder(assetFolder);
-            if (!m_AssetImporter.importAssetFolder(assetFolder))
+            m_AssetImporter.importOrReimportAssetFolder(assetFolder);
+            if (!m_AssetImporter.importOrReimportAssetFolder(assetFolder))
             {
                 throw std::runtime_error("Failed to import asset folder: " + assetFolder);
             }
@@ -151,6 +151,8 @@ namespace vultra
 
         bool AssetDatabase::reimportAsset(const std::filesystem::path& assetPath)
         {
+            assert(std::filesystem::exists(assetPath) && !std::filesystem::is_directory(assetPath));
+
             auto metaUUID          = getMetaUUID(assetPath);
             auto metaExt           = getMetaExtension(assetPath);
             auto assetPathCopy     = assetPath;
@@ -187,6 +189,13 @@ namespace vultra
             }
 
             return true;
+        }
+
+        bool AssetDatabase::reimportFolder(const std::filesystem::path& folderPath)
+        {
+            assert(std::filesystem::exists(folderPath) && std::filesystem::is_directory(folderPath));
+
+            return m_AssetImporter.importOrReimportAssetFolder(folderPath.string(), true);
         }
 
         Ref<rhi::Texture> AssetDatabase::getTextureByUUID(const vasset::VUUID& uuid)

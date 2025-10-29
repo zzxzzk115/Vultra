@@ -4,6 +4,8 @@
 
 #include <vultra/function/renderer/imgui_renderer.hpp>
 
+#include <ImGuiAl/msgbox/imguial_msgbox.h>
+
 #include <filesystem>
 
 namespace vultra
@@ -29,7 +31,10 @@ namespace vultra
             std::filesystem::path m_SelectedPath;
             std::filesystem::path m_RenamingPath;
 
-            ImGuiExt::RenamePopupWidget m_RenamePopupWidget;
+            ImGuiExt::RenamePopupWidget   m_RenamePopupWidget;
+            ImGuiExt::AsyncProgressWidget m_ReimportProgressWidget;
+            bool                          m_ShowReimportMsgBox {false};
+            ImGuiAl::MsgBox               m_ReimportMsgBox;
 
             char  m_FilterBuffer[128] {0};
             float m_LeftPanelRatio {0.3f};

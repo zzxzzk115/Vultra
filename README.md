@@ -69,10 +69,10 @@ Step-by-Step:
     - [x] Filter
     - [x] Grid View & List View
     - [ ] Right-click menus
-      - [ ] Reimport
+      - [x] Reimport
       - [ ] Create
       - [ ] Delete
-      - [ ] Rename
+      - [x] Rename
   - [ ] Scene Graph
     - [x] Tree View
     - [x] Status View

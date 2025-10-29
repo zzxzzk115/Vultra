@@ -6,6 +6,8 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 
+#include <future>
+
 namespace vultra
 {
     namespace editor
@@ -23,6 +25,11 @@ namespace vultra
                         metaUUID, m_RenamingPath.stem().string(), newName, m_RenamingPath.parent_path().string());
                 }
             });
+
+            m_ReimportProgressWidget.setFinishedCallback([this]() { m_ShowReimportMsgBox = true; });
+
+            static const char* buttons[] = {"OK"};
+            m_ReimportMsgBox.Init("Reimport##MsgBox", nullptr, "Reimport completed.", buttons);
         }
 
         AssetBrowserWindow::~AssetBrowserWindow() = default;
@@ -91,6 +98,18 @@ namespace vultra
 
             // Rename Popup
             m_RenamePopupWidget.onImGui("Rename Asset");
+
+            // Reimport Progress Popup
+            m_ReimportProgressWidget.onImGui("Reimporting Assets", "Reimporting assets, please wait...");
+
+            // Reimport Message Box
+            if (m_ShowReimportMsgBox)
+            {
+                m_ReimportMsgBox.Open();
+                m_ShowReimportMsgBox = false;
+            }
+
+            m_ReimportMsgBox.Draw();
 
             ImGui::End();
         }
@@ -365,10 +384,19 @@ namespace vultra
                 {
                     if (ImGui::MenuItem("Reimport"))
                     {
-                        if (!AssetDatabase::get()->reimportAsset(path))
+                        std::future<void> future;
+                        if (isDir)
                         {
-                            VULTRA_CLIENT_ERROR("Failed to reimport asset: {}", path.string());
+                            future = std::async(std::launch::async,
+                                                [path]() { AssetDatabase::get()->reimportFolder(path); });
                         }
+                        else
+                        {
+                            future =
+                                std::async(std::launch::async, [path]() { AssetDatabase::get()->reimportAsset(path); });
+                        }
+                        m_ReimportProgressWidget.setFuture(std::move(future));
+                        m_ReimportProgressWidget.open("Reimporting asset...");
                     }
                     if (ImGui::MenuItem("Create"))
                     {
