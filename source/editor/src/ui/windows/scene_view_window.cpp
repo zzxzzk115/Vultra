@@ -242,21 +242,23 @@ namespace vultra
                     if (!selectedEntityUUID.isNil() && m_GuizmoOperation != -1)
                     {
                         auto entityCache = m_LogicScene->getEntityWithCoreUUID(selectedEntityUUID);
+                        if (entityCache)
+                        {
+                            // TODO: Editor only camera
+                            auto camera           = m_LogicScene->getMainCamera();
+                            auto cameraComponent  = camera.getComponent<CameraComponent>();
+                            auto cameraTransform  = camera.getComponent<TransformComponent>();
+                            auto cameraView       = getCameraViewMatrix(cameraTransform);
+                            auto cameraProjection = getCameraProjectionMatrix(cameraComponent, false);
 
-                        // TODO: Editor only camera
-                        auto camera           = m_LogicScene->getMainCamera();
-                        auto cameraComponent  = camera.getComponent<CameraComponent>();
-                        auto cameraTransform  = camera.getComponent<TransformComponent>();
-                        auto cameraView       = getCameraViewMatrix(cameraTransform);
-                        auto cameraProjection = getCameraProjectionMatrix(cameraComponent, false);
-
-                        glm::mat4 transform = entityCache.getComponent<TransformComponent>().getTransform();
-                        transform           = glm::translate(transform, glm::vec3(0.0f, -10000.0f, 0.0f));
-                        ImGuizmo::Manipulate(glm::value_ptr(cameraView),
-                                             glm::value_ptr(cameraProjection),
-                                             static_cast<ImGuizmo::OPERATION>(m_GuizmoOperation),
-                                             m_GuizmoMode,
-                                             glm::value_ptr(transform));
+                            glm::mat4 transform = entityCache.getComponent<TransformComponent>().getTransform();
+                            transform           = glm::translate(transform, glm::vec3(0.0f, -10000.0f, 0.0f));
+                            ImGuizmo::Manipulate(glm::value_ptr(cameraView),
+                                                 glm::value_ptr(cameraProjection),
+                                                 static_cast<ImGuizmo::OPERATION>(m_GuizmoOperation),
+                                                 m_GuizmoMode,
+                                                 glm::value_ptr(transform));
+                        }
                     }
 
                     Selector::unselectAll(SelectionCategory::eEntity);
