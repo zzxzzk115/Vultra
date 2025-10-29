@@ -25,6 +25,11 @@ namespace vultra
             std::filesystem::path m_AssetRoot;
             std::filesystem::path m_CurrentDir;
             std::filesystem::path m_SelectedPath;
+            std::filesystem::path m_RenamingPath;
+
+            char m_RenameBuffer[256] {0};
+            bool m_RequestRenamePopup {false};
+            bool m_RenameFirstFrame {false};
 
             char  m_FilterBuffer[128] {0};
             float m_LeftPanelRatio {0.3f};

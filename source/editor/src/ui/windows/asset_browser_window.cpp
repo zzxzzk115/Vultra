@@ -80,6 +80,58 @@ namespace vultra
             drawRightPanel();
             ImGui::EndChild();
 
+            if (m_RequestRenamePopup)
+            {
+                ImGui::OpenPopup("Rename Asset");
+                m_RequestRenamePopup = false;
+                m_RenameFirstFrame   = true;
+            }
+
+            if (ImGui::BeginPopupModal("Rename Asset", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+            {
+                if (m_RenameFirstFrame)
+                {
+                    ImGui::SetKeyboardFocusHere(0);
+                    m_RenameFirstFrame = false;
+                }
+
+                ImGui::Separator();
+                ImGui::InputText("##rename_input",
+                                 m_RenameBuffer,
+                                 IM_ARRAYSIZE(m_RenameBuffer),
+                                 ImGuiInputTextFlags_EnterReturnsTrue);
+
+                const auto renamePath = [this](const std::string& parentDir) {
+                    if (!m_RenamingPath.empty())
+                    {
+                        auto metaUUID = AssetDatabase::get()->getMetaUUID(m_RenamingPath);
+                        AssetDatabase::get()->renameAsset(
+                            metaUUID, m_RenamingPath.stem().string(), m_RenameBuffer, parentDir);
+                    }
+                };
+
+                const auto closePopup = [this]() {
+                    m_RenamingPath = std::filesystem::path();
+                    ImGui::CloseCurrentPopup();
+                    m_RenameFirstFrame = true;
+                };
+
+                if (ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::Button("OK"))
+                {
+                    renamePath(m_RenamingPath.parent_path().string());
+                    closePopup();
+                }
+
+                ImGui::SameLine();
+
+                if (ImGui::IsKeyPressed(ImGuiKey_Escape) || ImGui::Button("Cancel"))
+                {
+                    closePopup();
+                }
+
+                ImGui::EndPopup();
+            }
+
             ImGui::End();
         }
 
@@ -239,7 +291,7 @@ namespace vultra
             // Draw items
             for (const auto& path : filesToShow)
             {
-                std::string name  = path.filename().stem().string();
+                std::string name  = path.stem().string();
                 bool        isDir = std::filesystem::is_directory(path);
 
                 ImGui::PushID(name.c_str());
@@ -341,6 +393,35 @@ namespace vultra
                     m_CurrentDir     = path;
                     m_FocusToCurrent = true;
                     m_SelectedPath.clear();
+                }
+
+                if (hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Right))
+                {
+                    selectPath(path);
+                    ImGui::OpenPopup("asset_browser_context");
+                }
+
+                if (ImGui::BeginPopup("asset_browser_context"))
+                {
+                    if (ImGui::MenuItem("Reimport"))
+                    {
+                        // TODO: Reimport logic
+                    }
+                    if (ImGui::MenuItem("Create"))
+                    {
+                        // TODO: Create logic
+                    }
+                    if (ImGui::MenuItem("Delete"))
+                    {
+                        // TODO: Delete logic
+                    }
+                    if (ImGui::MenuItem("Rename"))
+                    {
+                        m_RenamingPath = path;
+                        strncpy(m_RenameBuffer, path.stem().string().c_str(), sizeof(m_RenameBuffer));
+                        m_RequestRenamePopup = true;
+                    }
+                    ImGui::EndPopup();
                 }
 
                 ImGui::NextColumn();
