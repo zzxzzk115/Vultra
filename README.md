@@ -22,7 +22,7 @@
 
 Vultra is based on [libvultra](https://github.com/zzxzzk115/libvultra).
 
-![Showcase](./media/images/VultraEditor_2025_10_28.png)
+![Showcase](./media/images/VultraEditor_2025_10_30.png)
 
 ## Features
 - User-friendly Editor
@@ -84,10 +84,30 @@ Step-by-Step:
   - [ ] Scene View
     - [x] Render Target View
     - [ ] Tool bar
+      - [x] Grab (Q)
+      - [x] Translate (W)
+      - [x] Rotate (E)
+      - [x] Scale (R)
+      - [ ] More
     - [ ] 3D Gizmos
+      - [ ] QWER gizmos
+      - [ ] Orientation gizmos
+      - [ ] Icon gizmos
+        - [ ] Camera Icon
+        - [ ] Camera View Frustum Debug Draw
     - [ ] Entity Selection
   - [ ] Game View
+    - [x] Render Target View
+    - [ ] Tool bar
+      - [x] Resolution Picker
+      - [x] Zoom Factor Slider
+      - [ ] More
+  - [ ] Main Tool bar (Play, Next, Pause, Stop, etc.)
   - [ ] Inspector
+    - [x] Name
+    - [x] Flags
+    - [x] Transform
+    - [ ] More
 - [ ] Project Management
 - [ ] Hot-Reload
 
