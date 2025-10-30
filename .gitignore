@@ -24,7 +24,7 @@ vs20*/
 vsxmake*/
 
 # clangd
-# .clangd
+.clangd
 
 # imgui
 imgui.ini

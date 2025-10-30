@@ -42,7 +42,7 @@ namespace vultra
                     ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_NoMouse;
 
                     auto offset = Input::getMousePositionDelta();
-                    offset *= m_Sensitivity * 2.0f;
+                    offset *= m_Sensitivity * 4.0f;
 
                     auto cameraRotationEuler = transform.getRotationEuler();
 
