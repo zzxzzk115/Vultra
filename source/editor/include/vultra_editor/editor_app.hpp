@@ -40,7 +40,7 @@ namespace vultra
             argparse::ArgumentParser m_ArgParser {"Vultra Editor"};
 
             engine::Project m_CurrentProject {};
-            LogicScene      m_EditingScene {"Untitled Scene"};
+            Ref<LogicScene> m_EditingScene {nullptr};
 
             gfx::BuiltinRenderer m_Renderer;
 

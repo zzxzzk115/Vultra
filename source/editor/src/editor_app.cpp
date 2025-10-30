@@ -74,8 +74,20 @@ namespace vultra
                 }
             }
 
-            // TODO: Remove, test code
-            auto  camera                    = m_EditingScene.createMainCamera();
+            m_EditingScene = createRef<LogicScene>("Untitled Scene");
+            m_EditingScene->setSimulationMode(LogicSceneSimulationMode::eEditor);
+
+            auto  mainCamera          = m_EditingScene->createMainCamera();
+            auto& mainCamTransform    = mainCamera.getComponent<TransformComponent>();
+            auto& mainCamComponent    = mainCamera.getComponent<CameraComponent>();
+            mainCamTransform.position = glm::vec3(2.8f, 0.0f, -1.9f);
+            mainCamTransform.setRotationEuler({0, 120, 0});
+            mainCamComponent.clearFlags         = CameraClearFlags::eSkybox;
+            mainCamComponent.environmentMapPath = (std::filesystem::path(projectPath).parent_path() /
+                                                   "Assets/Textures/EnvMaps/citrus_orchard_puresky_1k.hdr")
+                                                      .generic_string();
+
+            auto  camera                    = m_EditingScene->createEditorCamera();
             auto& camTransform              = camera.getComponent<TransformComponent>();
             auto& camComponent              = camera.getComponent<CameraComponent>();
             camTransform.position           = glm::vec3(0.0f, 0.0f, 5.0f);
@@ -83,7 +95,9 @@ namespace vultra
             camComponent.environmentMapPath = (std::filesystem::path(projectPath).parent_path() /
                                                "Assets/Textures/EnvMaps/citrus_orchard_puresky_1k.hdr")
                                                   .generic_string();
-            auto rawMesh = m_EditingScene.createRawMeshEntity(
+
+            // TODO: Remove, test code
+            auto rawMesh = m_EditingScene->createRawMeshEntity(
                 "DamagedHelmet",
                 (std::filesystem::path(projectPath).parent_path() / "Assets/Models/DamagedHelmet/DamagedHelmet.gltf")
                     .generic_string());
@@ -122,14 +136,12 @@ namespace vultra
 
         void EditorApp::onUpdate(const fsec dt)
         {
-            m_Renderer.setScene(&m_EditingScene);
-            m_UIWindowManager.onUpdate(dt, &m_EditingScene);
+            m_UIWindowManager.onUpdate(dt, m_EditingScene.get());
 
-            // TODO: Remove, test code
-            auto mainCamera = m_EditingScene.getMainCamera();
-            if (mainCamera)
+            auto editorCamera = m_EditingScene->getEditorCamera();
+            if (editorCamera)
             {
-                auto& cameraComponent = m_EditingScene.getMainCamera().getComponent<CameraComponent>();
+                auto& cameraComponent = editorCamera.getComponent<CameraComponent>();
                 auto* sceneViewWindow = m_UIWindowManager.getWindowOfType<SceneViewWindow>();
                 assert(sceneViewWindow);
                 cameraComponent.viewPortWidth  = sceneViewWindow->getViewportWidth();

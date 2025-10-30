@@ -111,6 +111,14 @@ namespace vultra
 
         void SceneGraphWindow::drawEntityNode(Entity& entity)
         {
+            // Skip drawing editor camera
+            if (entity.hasComponent<CameraComponent>())
+            {
+                auto& cameraComp = entity.getComponent<CameraComponent>();
+                if (cameraComp.isEditorCamera)
+                    return;
+            }
+
             // Select icon based on components
             const char* icon = ICON_MDI_CUBE; // Default icon for generic entity
             if (entity.hasComponent<CameraComponent>() || entity.hasComponent<XrCameraComponent>())

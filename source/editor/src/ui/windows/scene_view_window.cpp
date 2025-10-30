@@ -27,25 +27,30 @@ namespace vultra
             UIWindow::onInit(renderDevice);
 
             // Default size
-            m_SceneRenderTexture = rhi::Texture::Builder {}
-                                       .setExtent({.width = 800, .height = 600})
-                                       .setPixelFormat(rhi::PixelFormat::eRGBA8_UNorm)
-                                       .setNumMipLevels(1)
-                                       .setUsageFlags(rhi::ImageUsage::eRenderTarget | rhi::ImageUsage::eSampled |
-                                                      rhi::ImageUsage::eTransferDst)
-                                       .setupOptimalSampler(true)
-                                       .build(renderDevice);
+            recreateRenderTexture(800, 600);
         }
 
         void SceneViewWindow::onImGui()
         {
             float displayScale = ImGui::GetStyle().FontScaleDpi;
-
             handleInput();
 
+            auto camera = m_LogicScene->getEditorCamera();
+            if (!m_EditorCameraScript.m_OwnerEntity)
+            {
+                m_EditorCameraScript.m_OwnerEntity = createRef<Entity>(camera);
+            }
+            m_EditorCameraScript.onImGui();
+
             ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-            ImGui::Begin(m_Name.c_str());
+            m_IsWindowOpen = ImGui::Begin(m_Name.c_str());
             ImGui::PopStyleVar();
+
+            if (!m_IsWindowOpen)
+            {
+                ImGui::End();
+                return;
+            }
 
             ImGui::BeginChild("ViewportToolbar", ImVec2(0, 30 * displayScale), false, ImGuiWindowFlags_NoScrollbar);
             drawToolbar();
@@ -90,12 +95,13 @@ namespace vultra
                 m_SelectedEntity = Entity {};
             }
 
-            // TODO: Editor only camera
-            auto camera           = m_LogicScene->getMainCamera();
             auto cameraComponent  = camera.getComponent<CameraComponent>();
             auto cameraTransform  = camera.getComponent<TransformComponent>();
             auto cameraView       = getCameraViewMatrix(cameraTransform);
             auto cameraProjection = getCameraProjectionMatrix(cameraComponent, false);
+
+            m_EditorCameraScript.setWindowHovered(m_IsWindowHovered);
+            m_EditorCameraScript.setGrabMoveEnabled(m_GuizmoOperation == -1);
 
             // Gizmos
             if (m_SelectedEntity && m_GuizmoOperation != -1)
@@ -167,6 +173,12 @@ namespace vultra
             // set distance to pivot (-> activates interaction)
             // distance to pivot is actually the distance from camera to the world space origin (0,0,0)
             float pivotDistance = glm::length(cameraTransform.position);
+
+            // Set to 0 if editor camera is in free move or grab move mode
+            if (m_EditorCameraScript.m_IsFreeMoveValid || m_EditorCameraScript.m_IsGrabMoveValid)
+            {
+                pivotDistance = 0.0f;
+            }
             if (ImOGuizmo::DrawGizmo(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection), pivotDistance))
             {
                 // decompose matrix and apply to camera transform
@@ -191,6 +203,11 @@ namespace vultra
 
         void SceneViewWindow::onRender(UIWindowRenderContext& ctx)
         {
+            if (m_IsWindowOpen)
+            {
+                m_LogicScene->setSimulationMode(LogicSceneSimulationMode::eEditor);
+            }
+            ctx.renderer->setScene(m_LogicScene);
             ctx.renderer->render(ctx.cb, &m_SceneRenderTexture, ctx.dt);
         }
 
@@ -244,8 +261,7 @@ namespace vultra
                         auto entityCache = m_LogicScene->getEntityWithCoreUUID(selectedEntityUUID);
                         if (entityCache)
                         {
-                            // TODO: Editor only camera
-                            auto camera           = m_LogicScene->getMainCamera();
+                            auto camera           = m_LogicScene->getEditorCamera();
                             auto cameraComponent  = camera.getComponent<CameraComponent>();
                             auto cameraTransform  = camera.getComponent<TransformComponent>();
                             auto cameraView       = getCameraViewMatrix(cameraTransform);

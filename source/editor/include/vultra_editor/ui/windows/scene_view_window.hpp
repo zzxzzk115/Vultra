@@ -1,5 +1,6 @@
 #pragma once
 
+#include "vultra_editor/scripts/editor_camera_script.hpp"
 #include "vultra_editor/ui/ui_window.hpp"
 
 #include <vultra/function/renderer/imgui_renderer.hpp>
@@ -40,6 +41,9 @@ namespace vultra
             Entity m_SelectedEntity;
 
             bool m_IsWindowHovered {false};
+            bool m_IsWindowOpen    {false};
+
+            EditorCameraScriptInstance m_EditorCameraScript;
         };
     } // namespace editor
 } // namespace vultra
