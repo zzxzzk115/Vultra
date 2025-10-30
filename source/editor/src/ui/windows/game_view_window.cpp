@@ -8,6 +8,8 @@
 
 namespace vultra
 {
+    using namespace imgui_literals;
+
     namespace editor
     {
         GameViewWindow::GameViewWindow() : UIWindow("Game View") {}
@@ -22,8 +24,6 @@ namespace vultra
 
         void GameViewWindow::onImGui()
         {
-            float displayScale = ImGui::GetStyle().FontScaleDpi;
-
             ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
             m_IsWindowOpen = ImGui::Begin(m_Name.c_str());
             ImGui::PopStyleVar();
@@ -45,7 +45,9 @@ namespace vultra
             }
 
             // --- Toolbar ---
-            ImGui::BeginChild("GameToolbar", ImVec2(0, 30 * displayScale), false, ImGuiWindowFlags_NoScrollbar);
+            ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.10f, 0.10f, 0.10f, 1.0f));
+            ImGui::BeginChild("GameToolbar", ImVec2(0, 30_dpx), false, ImGuiWindowFlags_NoScrollbar);
+            ImGui::PopStyleColor();
             drawToolbar();
             ImGui::EndChild();
 
@@ -98,7 +100,7 @@ namespace vultra
             // --- Resolution Combo ---
             const char* resolutionLabels[] = {"Free Aspect", "16:9", "4:3", "21:9", "1920x1080", "1280x720", "800x600"};
 
-            ImGui::SetNextItemWidth(250);
+            ImGui::SetNextItemWidth(120_dpx);
             if (ImGui::BeginCombo("##ResolutionCombo", resolutionLabels[m_SelectedResolution]))
             {
                 for (int i = 0; i < IM_ARRAYSIZE(resolutionLabels); ++i)
@@ -138,11 +140,11 @@ namespace vultra
             {
                 ImGui::Text("Zoom:");
                 ImGui::SameLine();
-                ImGui::SetNextItemWidth(150);
+                ImGui::SetNextItemWidth(80_dpx);
                 ImGui::SliderFloat("##ZoomSlider", &m_UserZoom, 0.25f, 4.0f, "%.2fx");
             }
 
-            ImGui::SameLine(0, 16);
+            ImGui::SameLine(0, 16_dpx);
             ImGui::Text("Res: %dx%d",
                         static_cast<int>(m_GameRenderTexture.getExtent().width),
                         static_cast<int>(m_GameRenderTexture.getExtent().height));

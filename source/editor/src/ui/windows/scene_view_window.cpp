@@ -12,10 +12,10 @@
 #include <imoguizmo/imoguizmo.hpp>
 
 #include <algorithm>
-#include <cmath>
 
 namespace vultra
 {
+    using namespace imgui_literals;
     namespace editor
     {
         SceneViewWindow::SceneViewWindow() : UIWindow("Scene View") {}
@@ -32,7 +32,6 @@ namespace vultra
 
         void SceneViewWindow::onImGui()
         {
-            float displayScale = ImGui::GetStyle().FontScaleDpi;
             handleInput();
 
             auto camera = m_LogicScene->getEditorCamera();
@@ -52,7 +51,9 @@ namespace vultra
                 return;
             }
 
-            ImGui::BeginChild("ViewportToolbar", ImVec2(0, 30 * displayScale), false, ImGuiWindowFlags_NoScrollbar);
+            ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.10f, 0.10f, 0.10f, 1.0f));
+            ImGui::BeginChild("ViewportToolbar", ImVec2(0, 30_dpx), false, ImGuiWindowFlags_NoScrollbar);
+            ImGui::PopStyleColor();
             drawToolbar();
             ImGui::EndChild();
 
@@ -150,7 +151,7 @@ namespace vultra
             ImGui::EndChild();
 
             // Begin overlay for imoguizmo
-            float gizmoSize = 120.0f * displayScale;
+            float gizmoSize = 120_dpx;
 
             ImGui::SetNextWindowSize({gizmoSize, gizmoSize});
             ImGui::SetNextWindowPos({bounds0.x, bounds0.y});
@@ -162,7 +163,7 @@ namespace vultra
                                   ImGuiWindowFlags_NoBringToFrontOnFocus);
 
             // Configure imoguizmo
-            ImOGuizmo::config.axisLengthScale = 0.12f * std::sqrt(displayScale);
+            ImOGuizmo::config.axisLengthScale = 0.12_sqrtscale;
 
             // specify position and size of gizmo
             ImOGuizmo::SetRect(bounds0.x, bounds0.y, gizmoSize);
