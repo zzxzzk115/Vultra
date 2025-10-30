@@ -22,7 +22,7 @@ namespace vultra
             void recreateRenderTexture(uint32_t width, uint32_t height);
 
             void      drawToolbar();
-            glm::vec2 computeTargetResolution(const ImVec2& avail) const;
+            glm::vec3 computeTargetResolution(const ImVec2& avail) const;
 
         private:
             imgui::ImGuiTextureID m_GameTexture {nullptr};

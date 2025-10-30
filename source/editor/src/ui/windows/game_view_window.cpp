@@ -58,7 +58,9 @@ namespace vultra
             m_AvailSize  = glm::vec2(avail.x, avail.y);
 
             // Determine target aspect ratio
-            m_TargetSize = computeTargetResolution(avail);
+            auto  newTarget = computeTargetResolution(avail);
+            float scale     = newTarget.z;
+            m_TargetSize    = glm::vec2(newTarget.x, newTarget.y);
 
             ImVec2 renderSize(m_TargetSize.x * m_UserZoom, m_TargetSize.y * m_UserZoom);
 
@@ -69,6 +71,8 @@ namespace vultra
             if (renderSize.y < avail.y)
                 cursor.y += (avail.y - renderSize.y) * 0.5f;
             ImGui::SetCursorPos(cursor);
+
+            m_TargetSize *= scale;
 
             // Resize render texture & update main camera viewport size if needed
             if (static_cast<uint32_t>(m_TargetSize.x) != m_GameRenderTexture.getExtent().width ||
@@ -110,7 +114,8 @@ namespace vultra
                     {
                         m_SelectedResolution = i;
 
-                        glm::vec2 newTarget = computeTargetResolution(ImVec2(m_AvailSize.x, m_AvailSize.y));
+                        glm::vec3 newTarget = computeTargetResolution(ImVec2(m_AvailSize.x, m_AvailSize.y));
+                        float     scale     = newTarget.z;
 
                         // Calculate auto zoom
                         float zoomX    = m_AvailSize.x / newTarget.x;
@@ -123,7 +128,7 @@ namespace vultra
                         else
                             m_UserZoom = autoZoom;
 
-                        m_TargetSize = newTarget;
+                        m_TargetSize = newTarget * scale;
                     }
 
                     if (isSelected)
@@ -150,42 +155,48 @@ namespace vultra
                         static_cast<int>(m_GameRenderTexture.getExtent().height));
         }
 
-        glm::vec2 GameViewWindow::computeTargetResolution(const ImVec2& avail) const
+        glm::vec3 GameViewWindow::computeTargetResolution(const ImVec2& avail) const
         {
+            float scale = 1.0f;
+
+#if __APPLE__
+            scale = os::Window::getActiveWindow().getDisplayScale();
+#endif
+
             switch (m_SelectedResolution)
             {
                 case 1: // 16:9
                 {
                     float targetHeight = avail.x / (16.0f / 9.0f);
                     if (targetHeight > avail.y)
-                        return {avail.y * (16.0f / 9.0f), avail.y};
+                        return {avail.y * (16.0f / 9.0f), avail.y, scale};
                     else
-                        return {avail.x, targetHeight};
+                        return {avail.x, targetHeight, scale};
                 }
                 case 2: // 4:3
                 {
                     float targetHeight = avail.x / (4.0f / 3.0f);
                     if (targetHeight > avail.y)
-                        return {avail.y * (4.0f / 3.0f), avail.y};
+                        return {avail.y * (4.0f / 3.0f), avail.y, scale};
                     else
-                        return {avail.x, targetHeight};
+                        return {avail.x, targetHeight, scale};
                 }
                 case 3: // 21:9
                 {
                     float targetHeight = avail.x / (21.0f / 9.0f);
                     if (targetHeight > avail.y)
-                        return {avail.y * (21.0f / 9.0f), avail.y};
+                        return {avail.y * (21.0f / 9.0f), avail.y, scale};
                     else
-                        return {avail.x, targetHeight};
+                        return {avail.x, targetHeight, scale};
                 }
                 case 4:
-                    return {1920, 1080};
+                    return {1920, 1080, 1.0f};
                 case 5:
-                    return {1280, 720};
+                    return {1280, 720, 1.0f};
                 case 6:
-                    return {800, 600};
+                    return {800, 600, 1.0f};
                 default:
-                    return {avail.x, avail.y}; // Free Aspect
+                    return {avail.x, avail.y, scale};
             }
         }
 

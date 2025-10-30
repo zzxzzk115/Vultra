@@ -225,7 +225,7 @@ namespace vultra
 
         void EditorApp::buildDockSpace(ImGuiDockNodeFlags dockSpaceFlags)
         {
-            float   displayScale = os::Window::getPrimaryDisplayScale();
+            float   displayScale = ImGui::GetStyle().FontScaleDpi;
             ImGuiID dockSpaceId  = ImGui::GetID("DockSpace");
 
             ImGui::PushStyleVar(ImGuiStyleVar_WindowMinSize, ImVec2(displayScale * 320.0f, displayScale * 240.0f));

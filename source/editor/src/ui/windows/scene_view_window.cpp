@@ -218,6 +218,12 @@ namespace vultra
 
         void SceneViewWindow::recreateRenderTexture(uint32_t width, uint32_t height)
         {
+#if __APPLE__
+            // On macOS, need to consider the display scale
+            float displayScale = os::Window::getActiveWindow().getDisplayScale();
+            width              = static_cast<uint32_t>(width * displayScale);
+            height             = static_cast<uint32_t>(height * displayScale);
+#endif
             m_SceneRenderTexture = rhi::Texture::Builder {}
                                        .setExtent({.width = width, .height = height})
                                        .setPixelFormat(rhi::PixelFormat::eRGBA8_UNorm)
