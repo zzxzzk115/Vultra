@@ -163,7 +163,7 @@ namespace vultra
                                   ImGuiWindowFlags_NoBringToFrontOnFocus);
 
             // Configure imoguizmo
-            ImOGuizmo::config.axisLengthScale = 0.12_sqrtscale;
+            ImOGuizmo::config.axisLengthScale = 0.12f;
 
             // specify position and size of gizmo
             ImOGuizmo::SetRect(bounds0.x, bounds0.y, gizmoSize);
