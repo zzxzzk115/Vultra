@@ -80,7 +80,7 @@ namespace vultra
             auto  mainCamera          = m_EditingScene->createMainCamera();
             auto& mainCamTransform    = mainCamera.getComponent<TransformComponent>();
             auto& mainCamComponent    = mainCamera.getComponent<CameraComponent>();
-            mainCamTransform.position = glm::vec3(2.8f, 0.0f, -1.9f);
+            mainCamTransform.position = glm::vec3(2.8f, 3.0f, -1.9f);
             mainCamTransform.setRotationEuler({0, 120, 0});
             mainCamComponent.clearFlags         = CameraClearFlags::eSkybox;
             mainCamComponent.environmentMapPath = (std::filesystem::path(projectPath).parent_path() /
@@ -90,7 +90,8 @@ namespace vultra
             auto  camera                    = m_EditingScene->createEditorCamera();
             auto& camTransform              = camera.getComponent<TransformComponent>();
             auto& camComponent              = camera.getComponent<CameraComponent>();
-            camTransform.position           = glm::vec3(0.0f, 0.0f, 5.0f);
+            camTransform.position           = glm::vec3(0.0f, 3.0f, 5.0f);
+            camComponent.zFar               = 10000.0f; // Set far plane to a larger value for editor camera
             camComponent.clearFlags         = CameraClearFlags::eSkybox;
             camComponent.environmentMapPath = (std::filesystem::path(projectPath).parent_path() /
                                                "Assets/Textures/EnvMaps/citrus_orchard_puresky_1k.hdr")
@@ -102,6 +103,7 @@ namespace vultra
                 (std::filesystem::path(projectPath).parent_path() / "Assets/Models/DamagedHelmet/DamagedHelmet.gltf")
                     .generic_string());
             auto& rawMeshTransform = rawMesh.getComponent<TransformComponent>();
+            rawMeshTransform.position = glm::vec3(0.0f, 3.0f, 0.0f);
             rawMeshTransform.setRotationEuler({0.0f, 45.0f, 0.0f});
 
             // Initialize Asset Database

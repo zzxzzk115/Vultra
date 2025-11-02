@@ -29,6 +29,7 @@ namespace vultra
             rhi::Texture          m_GameRenderTexture;
 
             bool m_IsWindowOpen {false};
+            bool m_FirstFrame {true};
 
             glm::vec2 m_AvailSize {0, 0};
             glm::vec2 m_TargetSize {0, 0};

@@ -204,6 +204,28 @@ namespace vultra
             ImGui::EndChild();
 
             ImGui::End();
+
+            // Camera Frustum Debug Draw if main camera is selected
+            auto mainCamera = m_LogicScene->getMainCamera();
+            if (m_SelectedEntity && m_SelectedEntity.getCoreUUID() == mainCamera.getCoreUUID())
+            {
+                auto      camComponent = mainCamera.getComponent<CameraComponent>();
+                auto      camTransform = mainCamera.getComponent<TransformComponent>();
+                glm::mat4 view         = getCameraViewMatrix(camTransform);
+                glm::mat4 proj         = getCameraProjectionMatrix(camComponent, false);
+                glm::mat4 vp           = proj * view;
+
+                glm::vec3 frustumColor = glm::vec3(1.0f, 1.0f, 0.0f);
+                dd::frustum(glm::value_ptr(glm::inverse(vp)), glm::value_ptr(frustumColor));
+            }
+
+            // Draw xz plane grid
+            // TODO: Switch to shader-based infinite ground grid for better performance & visual quality
+            // https://godotshaders.com/shader/infinite-ground-grid/
+            {
+                glm::vec3 gridColor = glm::vec3(0.3f, 0.3f, 0.3f);
+                dd::xzSquareGrid(-50.0f, 50.0f, 0.0f, 1.0f, glm::value_ptr(gridColor));
+            }
         }
 
         void SceneViewWindow::onRender(UIWindowRenderContext& ctx)

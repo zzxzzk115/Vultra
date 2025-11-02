@@ -28,9 +28,10 @@ namespace vultra
             m_IsWindowOpen = ImGui::Begin(m_Name.c_str());
             ImGui::PopStyleVar();
 
-            if (!m_IsWindowOpen)
+            if (!m_IsWindowOpen && !m_FirstFrame)
             {
                 ImGui::End();
+                m_FirstFrame = false;
                 return;
             }
 
