@@ -39,6 +39,10 @@ namespace vultra
             {
                 m_EditorCameraScript.m_OwnerEntity = createRef<Entity>(camera);
             }
+            if (!m_EditorCameraScript.m_ActiveScene)
+            {
+                m_EditorCameraScript.m_ActiveScene = m_LogicScene;
+            }
             m_EditorCameraScript.onImGui();
 
             ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));

@@ -34,6 +34,8 @@ namespace vultra
             bool m_FirstMouse = true;
             bool m_FirstGrab  = true;
 
+            LogicScene* m_ActiveScene = nullptr;
+
             friend class SceneViewWindow;
         };
     } // namespace editor

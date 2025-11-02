@@ -191,20 +191,21 @@ namespace vultra
                 transform.position += yOffset * forward;
 
                 // Focus
-                // if (ImGui::IsKeyDown(ImGuiKey_F))
-                // {
-                //     auto selectedEntityUUID = Selector::getLastSelection(SelectionCategory::eEntity);
-                //     if (!selectedEntityUUID.isNil())
-                //     {
-                //         auto selectedEntity =
-                //         SceneManager::getActiveScene()->GetEntityWithCoreUUID(selectedEntityUUID); if
-                //         (selectedEntity)
-                //         {
-                //             auto selectedEntityTransform = selectedEntity.GetComponent<TransformComponent>();
-                //             transform.position           = selectedEntityTransform.position - 10.0f * forward;
-                //         }
-                //     }
-                // }
+                if (ImGui::IsKeyDown(ImGuiKey_F))
+                {
+                    auto selectedEntityUUID = Selector::getLastSelection(SelectionCategory::eEntity);
+                    if (!selectedEntityUUID.isNil() && m_ActiveScene)
+                    {
+                        auto selectedEntity = m_ActiveScene->getEntityWithCoreUUID(selectedEntityUUID);
+                        if (selectedEntity)
+                        {
+                            auto selectedEntityTransform = selectedEntity.getComponent<TransformComponent>();
+
+                            // Position the camera to focus on the selected entity
+                            transform.position = selectedEntityTransform.position - 5.0f * forward;
+                        }
+                    }
+                }
             }
         }
     } // namespace editor
