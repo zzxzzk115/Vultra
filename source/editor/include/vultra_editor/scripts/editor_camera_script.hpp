@@ -7,6 +7,8 @@
 
 namespace vultra
 {
+    class LogicScene;
+
     namespace editor
     {
         class EditorCameraScriptInstance : public InternalScriptInstance

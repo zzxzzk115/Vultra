@@ -5,6 +5,7 @@
 #include <vultra/core/os/window.hpp>
 #include <vultra/function/scenegraph/component_utils.hpp>
 #include <vultra/function/scenegraph/entity.hpp>
+#include <vultra/function/scenegraph/logic_scene.hpp>
 
 #include <imgui.h>
 
