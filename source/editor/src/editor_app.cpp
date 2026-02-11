@@ -102,7 +102,7 @@ namespace vultra
                 "DamagedHelmet",
                 (std::filesystem::path(projectPath).parent_path() / "Assets/Models/DamagedHelmet/DamagedHelmet.gltf")
                     .generic_string());
-            auto& rawMeshTransform = rawMesh.getComponent<TransformComponent>();
+            auto& rawMeshTransform    = rawMesh.getComponent<TransformComponent>();
             rawMeshTransform.position = glm::vec3(0.0f, 3.0f, 0.0f);
             rawMeshTransform.setRotationEuler({0.0f, 45.0f, 0.0f});
 
@@ -150,6 +150,7 @@ namespace vultra
                 cameraComponent.viewPortHeight = sceneViewWindow->getViewportHeight();
             }
 
+            m_Renderer.onUpdate(dt);
             ImGuiApp::onUpdate(dt);
         }
 
