@@ -40,6 +40,8 @@ namespace vultra
             Ref<rhi::Texture>     getTextureByUUID(const vasset::VUUID& uuid);
             imgui::ImGuiTextureID getImGuiTextureByUUID(const vasset::VUUID& uuid);
 
+            std::string getAssetPath(const std::string& relativePath) const;
+
             static AssetDatabase* get();
             static void           destroy();
 

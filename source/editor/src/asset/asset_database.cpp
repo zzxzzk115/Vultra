@@ -239,6 +239,23 @@ namespace vultra
             return nullptr;
         }
 
+        std::string AssetDatabase::getAssetPath(const std::string& relativePath) const
+        {
+            auto rawPath = (std::filesystem::path(m_Project.directory) / relativePath);
+            auto uuid    = AssetDatabase::get()->getMetaUUID(rawPath);
+
+            // Not imported, return as raw
+            if (uuid.isNil())
+                return rawPath.generic_string();
+
+            auto assetEntry = AssetDatabase::get()->getRegistry().lookup(uuid);
+            if (assetEntry.path.empty())
+                return rawPath.generic_string();
+
+            auto importedPath = std::filesystem::path(m_Project.directory) / ASSET_EXPORT_FOLDER / assetEntry.path;
+            return importedPath.generic_string();
+        }
+
         AssetDatabase* AssetDatabase::get()
         {
             if (!s_Instance)

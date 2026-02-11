@@ -74,6 +74,12 @@ namespace vultra
                 }
             }
 
+            // Initialize Asset Database
+            AssetDatabase::get()->initialize(m_CurrentProject, *m_RenderDevice);
+
+#define IMPORTED_ASSET_PATH(p) AssetDatabase::get()->getAssetPath(p)
+#define ASSET_PATH(p) (std::filesystem::path(projectPath).parent_path() / p).generic_string()
+
             m_EditingScene = createRef<LogicScene>("Untitled Scene");
             m_EditingScene->setSimulationMode(LogicSceneSimulationMode::eEditor);
 
@@ -82,32 +88,25 @@ namespace vultra
             auto& mainCamComponent    = mainCamera.getComponent<CameraComponent>();
             mainCamTransform.position = glm::vec3(2.8f, 3.0f, -1.9f);
             mainCamTransform.setRotationEuler({0, 120, 0});
-            mainCamComponent.clearFlags         = CameraClearFlags::eSkybox;
-            mainCamComponent.environmentMapPath = (std::filesystem::path(projectPath).parent_path() /
-                                                   "Assets/Textures/EnvMaps/citrus_orchard_puresky_1k.hdr")
-                                                      .generic_string();
+            mainCamComponent.clearFlags = CameraClearFlags::eSkybox;
+            mainCamComponent.environmentMapPath =
+                IMPORTED_ASSET_PATH("Assets/Textures/EnvMaps/citrus_orchard_puresky_1k.hdr");
 
-            auto  camera                    = m_EditingScene->createEditorCamera();
-            auto& camTransform              = camera.getComponent<TransformComponent>();
-            auto& camComponent              = camera.getComponent<CameraComponent>();
-            camTransform.position           = glm::vec3(0.0f, 3.0f, 5.0f);
-            camComponent.zFar               = 10000.0f; // Set far plane to a larger value for editor camera
-            camComponent.clearFlags         = CameraClearFlags::eSkybox;
-            camComponent.environmentMapPath = (std::filesystem::path(projectPath).parent_path() /
-                                               "Assets/Textures/EnvMaps/citrus_orchard_puresky_1k.hdr")
-                                                  .generic_string();
+            auto  camera            = m_EditingScene->createEditorCamera();
+            auto& camTransform      = camera.getComponent<TransformComponent>();
+            auto& camComponent      = camera.getComponent<CameraComponent>();
+            camTransform.position   = glm::vec3(0.0f, 3.0f, 5.0f);
+            camComponent.zFar       = 10000.0f; // Set far plane to a larger value for editor camera
+            camComponent.clearFlags = CameraClearFlags::eSkybox;
+            camComponent.environmentMapPath =
+                IMPORTED_ASSET_PATH("Assets/Textures/EnvMaps/citrus_orchard_puresky_1k.hdr");
 
             // TODO: Remove, test code
             auto rawMesh = m_EditingScene->createRawMeshEntity(
-                "DamagedHelmet",
-                (std::filesystem::path(projectPath).parent_path() / "Assets/Models/DamagedHelmet/DamagedHelmet.gltf")
-                    .generic_string());
+                "DamagedHelmet", ASSET_PATH("Assets/Models/DamagedHelmet/DamagedHelmet.gltf"));
             auto& rawMeshTransform    = rawMesh.getComponent<TransformComponent>();
             rawMeshTransform.position = glm::vec3(0.0f, 3.0f, 0.0f);
             rawMeshTransform.setRotationEuler({0.0f, 45.0f, 0.0f});
-
-            // Initialize Asset Database
-            AssetDatabase::get()->initialize(m_CurrentProject, *m_RenderDevice);
 
             // Register UI Windows
             m_UIWindowManager.registerWindow<SceneGraphWindow>();
@@ -122,6 +121,9 @@ namespace vultra
 
             // Log initial message
             VULTRA_CLIENT_INFO("Vultra Editor: version {} initialized.", EDITOR_VERSION_STRING);
+
+#undef IMPORTED_ASSET_PATH
+#undef ASSET_PATH
         }
 
         EditorApp::~EditorApp()
