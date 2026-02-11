@@ -24,6 +24,7 @@ namespace vultra
             static void drawComponentName(NameComponent& comp);
             static void drawComponentFlags(EntityFlagsComponent& comp);
             static void drawComponentTransform(TransformComponent& comp);
+            static void drawComponentCamera(CameraComponent& comp);
 
             static void drawAssetProperties(const CoreUUID& assetUUID);
         };
