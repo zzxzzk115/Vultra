@@ -51,6 +51,11 @@ namespace vultra
             {
                 drawComponentTransform(entity.getComponent<TransformComponent>());
             }
+
+            if (entity.hasComponent<CameraComponent>())
+            {
+                drawComponentCamera(entity.getComponent<CameraComponent>());
+            }
         }
 
         void InspectorWindow::drawComponentName(NameComponent& comp) { ImGui::Text("Name: %s", comp.name.c_str()); }
@@ -74,6 +79,51 @@ namespace vultra
 
             // Scale
             ImGuiExt::DrawVec3Control("Scale", comp.scale, 1.0f);
+
+            ImGui::Unindent();
+        }
+
+        void InspectorWindow::drawComponentCamera(CameraComponent& comp)
+        {
+            if (!ImGui::CollapsingHeader("Camera", ImGuiTreeNodeFlags_DefaultOpen))
+                return;
+
+            ImGui::Indent();
+
+            // Clear Flags
+            int clearFlags = static_cast<int>(comp.clearFlags);
+            if (ImGui::Combo("Clear Flags", &clearFlags, "Color\0Skybox\0"))
+            {
+                comp.clearFlags = static_cast<CameraClearFlags>(clearFlags);
+            }
+
+            // Projection
+            int projection = static_cast<int>(comp.projection);
+            if (ImGui::Combo("Projection", &projection, "Perspective\0Orthographic\0"))
+            {
+                comp.projection = static_cast<CameraProjection>(projection);
+            }
+
+            // Clear Color
+            ImGui::ColorEdit4("Clear Color", glm::value_ptr(comp.clearColor));
+
+            // Viewport Size
+            ImGui::InputInt("Viewport Width", reinterpret_cast<int*>(&comp.viewPortWidth));
+            ImGui::InputInt("Viewport Height", reinterpret_cast<int*>(&comp.viewPortHeight));
+
+            // FOV
+            ImGui::InputFloat("Field of View", &comp.fov);
+
+            // Near and Far Planes
+            ImGui::InputFloat("Near Plane", &comp.zNear);
+            ImGui::InputFloat("Far Plane", &comp.zFar);
+
+            // Primary and Editor Camera Flags
+            ImGui::Checkbox("Primary Camera", &comp.isPrimary);
+            ImGui::Checkbox("Editor Camera", &comp.isEditorCamera);
+
+            // Optional Environment Map Path
+            ImGui::InputText("Environment Map Path", comp.environmentMapPath.data(), comp.environmentMapPath.size());
 
             ImGui::Unindent();
         }

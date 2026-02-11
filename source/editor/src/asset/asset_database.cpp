@@ -51,7 +51,6 @@ namespace vultra
                 m_AssetRegistry.load(outputRegistryFile);
             }
 
-            m_AssetImporter.importOrReimportAssetFolder(assetFolder);
             if (!m_AssetImporter.importOrReimportAssetFolder(assetFolder))
             {
                 throw std::runtime_error("Failed to import asset folder: " + assetFolder);
