@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../../source/scripting/managed/Vultra.Scripting.csproj" />
+    <Compile Include="../../../source/scripting/managed/ScriptAssemblies.cs" Link="ScriptAssemblies.cs" />
+  </ItemGroup>
+</Project>

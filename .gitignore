@@ -13,7 +13,7 @@ cmake-build*/
 .vs/
 out/
 
-# Engine
+# Log files
 *.log
 
 # CMake
@@ -24,13 +24,26 @@ vs20*/
 vsxmake*/
 
 # clangd
-.clangd
+*.clangd
+compile_commands.json
 
-# imgui
+# Python tooling and research package artifacts
+__pycache__/
+*.pyc
+extensions/research/python/*.egg-info/
+extensions/research/python/dist/
+
+# Runtime artifacts
+.vultra/
 imgui.ini
-
-# renderdoc captures
 captures/
 
-# FrameGraph dot previews
-*.dot
+# .NET scripting examples and bridge intermediates
+source/scripting/managed/bin/
+source/scripting/managed/obj/
+source/scripting/managed/generators/bin/
+source/scripting/managed/generators/obj/
+examples/scripting/csharp/bin/
+examples/scripting/csharp/obj/
+tests/**/bin/
+tests/**/obj/

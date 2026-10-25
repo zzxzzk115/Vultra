@@ -1,88 +1,133 @@
--- set project name
 set_project("Vultra")
-
--- set project version
-set_version("0.1.0")
-
--- set language version: C++ 23
 set_languages("cxx23")
+add_rules("mode.debug", "mode.release")
+add_rules("plugin.compile_commands.autoupdate", {outputdir = "."})
 
--- global options
-option("tests") -- build tests?
-    set_default(true)
+option("libvultra_dir")
+    set_default("external/libvultra")
     set_showmenu(true)
-    set_description("Enable tests")
+    set_description("Pinned library checkout, or an explicit local source override")
 option_end()
-
--- if build on windows
-if is_plat("windows") then
-    add_cxxflags("/Zc:__cplusplus", {tools = {"msvc", "cl"}}) -- fix __cplusplus == 199711L error
-    add_cxxflags("/bigobj") -- avoid big obj
-    add_cxxflags("-D_SILENCE_STDEXT_ARR_ITERS_DEPRECATION_WARNING")
-    add_cxxflags("/EHsc")
-    if is_mode("debug") then
-        set_runtimes("MDd")
-        add_links("ucrtd")
-    else
-        set_runtimes("MD")
-    end
-else
-    add_cxxflags("-fexceptions")
-end
-
--- add rules
-rule("imguiconfig")
-    set_extensions(".ini")
-
-    on_build_file(function (target, sourcefile, opt) end)
-
-    after_build_file(function (target, sourcefile, opt)
-        if path.basename(sourcefile) ~= "imgui" then
+local function selectFeatures(requested)
+    local requirements = {
+        world = {},
+        rendering = {"world"},
+        asset_import = {"world"},
+        scene_prepare = {"world"},
+        export = {"asset_import", "shader"},
+        shader = {"world"},
+        desktop = {"world"},
+        editor_gui = {"world"},
+        vgui = {"world"},
+        script_native = {"world"},
+        script_lua = {"world"},
+        script_csharp = {"world"}
+    }
+    local selected = {}
+    local failure
+    local function enable(name)
+        if not requirements[name] then
+            failure = "Unknown Vultra capability: " .. name
             return
         end
-        local output_path = path.join(target:targetdir(), path.filename(sourcefile))
-        os.cp(sourcefile, output_path)
-        print("Copying imgui config: " .. sourcefile .. " -> " .. output_path)
-    end)
-rule_end()
-
-rule("linux.sdl.driver")
-    before_run(function (target)
-        if is_plat("linux") then
-            if has_config("wayland") then
-                os.setenv("SDL_VIDEODRIVER", "wayland")
-            else
-                os.setenv("SDL_VIDEODRIVER", "x11")
+        if selected[name] then
+            return
+        end
+        selected[name] = true
+        for _, dependency in ipairs(requirements[name]) do
+            enable(dependency)
+        end
+    end
+    local count = 0
+    for name in requested:gmatch("[^,]+") do
+        name = name:trim()
+        count = count + 1
+        if name == "all" then
+            for capability in pairs(requirements) do
+                enable(capability)
             end
-        end
-    end)
-rule_end()
-
-rule("clangd.config")
-    on_config(function (target)
-        if is_host("windows") then
-            os.cp(".clangd.win", ".clangd")
         else
-            os.cp(".clangd.nowin", ".clangd")
+            enable(name)
         end
+    end
+    if count == 0 then
+        failure = "vultra_features must name at least one capability"
+    end
+    return selected, failure
+end
+local function libraryFeatures(selected)
+    local required = {"asset_values", "material_values", "asset_source", "input_actions", "random", "render_values"}
+    local dependencies = {
+        rendering = {"rendering", "graph_json"},
+        asset_import = {"asset_import"},
+        scene_prepare = {"scene_prepare"},
+        export = {"game_shader"},
+        shader = {"game_shader"},
+        desktop = {"desktop", "camera"},
+        editor_gui = {"editor_gui"},
+        vgui = {"vgui"}
+    }
+    for name in pairs(selected) do
+        table.join2(required, dependencies[name] or {})
+    end
+    required = table.unique(required)
+    table.sort(required)
+    return table.concat(required, ",")
+end
+option("vultra_features")
+    set_default("all")
+    set_showmenu(true)
+    set_description("Engine capabilities: world, rendering, asset_import, scene_prepare, export, shader, desktop, " ..
+                    "editor_gui, vgui, script_native, script_lua, script_csharp")
+    -- Derived requirements must follow CLI option checking, not the initial menu pass.
+    after_check(function ()
+        import("core.project.config")
+        assert(not config.readonly("libvultra_features"),
+               "Select vultra_features; the engine derives its library requirements")
+        local selected, failure = selectFeatures(config.get("vultra_features") or "all")
+        assert(not failure, failure)
+        config.set("libvultra_features", libraryFeatures(selected))
     end)
-rule_end()
+option_end()
 
-add_rules("mode.debug", "mode.release")
-add_rules("plugin.vsxmake.autoupdate")
-add_rules("plugin.compile_commands.autoupdate", {outputdir = ".vscode", lsp = "clangd"})
-add_rules("clangd.config")
+function vultraLibraryRoot()
+    return path.absolute(get_config("libvultra_dir") or "external/libvultra", os.projectdir())
+end
 
--- add repositories
-add_repositories("my-xmake-repo https://github.com/zzxzzk115/xmake-repo.git backup")
-
--- include external
-includes("external")
-
--- include source
+function vultraEngineFeatures()
+    return selectFeatures(get_config("vultra_features") or "all")
+end
+local features = vultraEngineFeatures()
+set_config("libvultra_build_examples", false)
+set_config("libvultra_build_tests", false)
+includes(vultraLibraryRoot())
+add_requires("entt v3.15.0", {system = false})
+if features.script_lua then
+    add_requires("lua v5.4.8", {configs = {shared = false}, system = false})
+end
 includes("source")
 
--- include tests
-if has_config("tests") then
-    includes("tests")
-end
+includes("tests")
+
+task("codegen")
+    set_menu {
+        usage = "xmake codegen [options]",
+        options = {{"c", "check", "k", nil, "Check generated files without modifying them"}}
+    }
+    on_run(function ()
+        import("core.base.option")
+        import("core.project.config")
+        config.load()
+        local selected = selectFeatures(config.get("vultra_features") or "all")
+        assert(selected.rendering and selected.editor_gui,
+               "Generate the complete API with rendering and editor_gui selected, then refresh compile_commands")
+        local library = path.absolute(config.get("libvultra_dir") or "external/libvultra", os.projectdir())
+        local args = {path.join(library, "scripts/codegen.py"), "--manifest",
+                      path.join(os.projectdir(), "source/api/codegen.json"), "--database",
+                      path.join(os.projectdir(), "compile_commands.json")}
+        if option.get("check") then
+            table.insert(args, "--check")
+        end
+        os.execv("python3", args)
+    end)
+task_end()

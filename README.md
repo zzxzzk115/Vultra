@@ -1,115 +1,46 @@
 # Vultra
 
-<h4 align="center">
-  Vultra is a modern 3D engine for game development, graphics research and more.
-</h4>
+A C++23 engine built on libvultra. The `dev-VRI` branch is an early engine-core migration: an EnTT world,
+Node/Resource authoring, JSON persistence, generated C interfaces and optional Native C++/Lua/C# scripting.
+A CPU world needs no window, GPU, GUI or language VM.
 
-<p align="center">
-    <a href="https://github.com/zzxzzk115/Vultra/actions" alt="Build-Windows">
-        <img src="https://img.shields.io/github/actions/workflow/status/zzxzzk115/Vultra/build_windows.yaml?branch=master&label=Build-Windows&logo=github" /></a>
-    <a href="https://github.com/zzxzzk115/Vultra/actions" alt="Build-Linux">
-        <img src="https://img.shields.io/github/actions/workflow/status/zzxzzk115/Vultra/build_linux.yaml?branch=master&label=Build-Linux&logo=github" /></a>
-    <a href="https://github.com/zzxzzk115/Vultra/actions" alt="Build-macOS">
-        <img src="https://img.shields.io/github/actions/workflow/status/zzxzzk115/Vultra/build_macos.yaml?branch=master&label=Build-macOS&logo=github" /></a>
-    <a href="https://github.com/zzxzzk115/Vultra/issues" alt="GitHub Issues">
-        <img src="https://img.shields.io/github/issues/zzxzzk115/Vultra"></a>
-    <a href="https://www.codefactor.io/repository/github/zzxzzk115/vultra"><img src="https://www.codefactor.io/repository/github/zzxzzk115/vultra/badge" alt="CodeFactor" /></a>
-    <a href="https://github.com/zzxzzk115/Vultra/blob/master/LICENSE" alt="GitHub">
-        <img src="https://img.shields.io/github/license/zzxzzk115/Vultra"></a>
-</p>
+The current targets are `vultra-engine`, `vultra-native-sdk`, optional `vultra-scripting` and the .NET 10
+`vultra-managed-host`. Editor, Player, export tools and the scripting showcase are not integrated into the
+current build. The earlier editor/hub sources remain migration inputs; their old screenshots and commands
+are not instructions for this branch.
 
-(This project is under early development and WIP.)
+## Build the core
 
-Vultra is based on [libvultra](https://github.com/zzxzzk115/libvultra).
+Install xmake and a C++23 compiler, then clone the branch with its pinned library dependency:
 
-![Showcase](./media/images/VultraEditor_2025_11_02.png)
+```sh
+git clone --branch dev-VRI --recurse-submodules https://github.com/zzxzzk115/Vultra.git
+cd Vultra
+```
 
-## Features
-- User-friendly Editor
+```sh
+xmake f -m release --vultra_features=world -y
+xmake build --all
+xmake test -v
+```
 
-## Build Instructions
+The default build uses `external/libvultra`. Coordinated development can select a sibling checkout with
+`--libvultra_dir=../libvultra`.
+See [BUILD.md](BUILD.md) for graphics, language hosts, generation and test commands.
+[Architecture](docs/architecture.md) defines ownership and formats; [roadmap](docs/roadmap.md) lists the remaining
+engine gates. Migration state and cross-machine notes are in [handoff](docs/ai/handoff.md).
 
-Prerequisites:
-- Git
-- XMake
-- Vulkan SDK
-- Visual Studio with MSVC if Windows
-- GCC or Clang if Linux/Unix
-- XCode with GCC or Apple Clang if macOS
+## Design
 
-Step-by-Step:
+- EnTT owns runtime entities/components. Node is an authoring and scripting facade, with no per-frame mirror.
+- Projects own asset/type catalogs; worlds own live identity, hierarchy, resources and execution.
+- Native, Lua and safe C# use the same property schemas, object IDs and lifecycle.
+- Documents will own undo/history and a separate Play world. Those editor workflows are still planned.
+- All engine file/ABI versions remain **1** before release; format changes update both readers and writers.
 
-- Install XMake by following [this](https://xmake.io/guide/quick-start.html#installation). 
-
-- Clone the project:
-  ```bash
-  git clone --recursive https://github.com/zzxzzk115/Vultra.git
-  ```
-
-- Build the project:
-  ```bash
-  cd Vultra
-  git submodule update --init --recursive
-  xmake -vD
-  ```
-
-- Run the Editor
-  ```bash
-  xmake run VultraEditor
-  ```
-
-  > **Tips:**
-  > For OpenXR programs, you may need to set the XR_RUNTIME_JSON environment variable.
-  > For debugging OpenXR programs without headsets, you may need Meta XR Simulator on Windows and macOS. On Linux, you can use Monado as the simulator.
-
-## TODO List
-- [ ] Editor Windows
-  - [ ] Asset Browser
-    - [x] Tree View
-    - [x] Filter
-    - [x] Grid View & List View
-    - [ ] Right-click menus
-      - [x] Reimport
-      - [ ] Create
-      - [ ] Delete
-      - [x] Rename
-  - [ ] Scene Graph
-    - [x] Tree View
-    - [x] Status View
-    - [ ] Right-click menus
-      - [x] Create New Entity
-      - [x] Delete Entity
-      - [x] Rename Entity
-      - [ ] Create Others
-  - [ ] Scene View
-    - [x] Render Target View
-    - [ ] Tool bar
-      - [x] Grab (Q)
-      - [x] Translate (W)
-      - [x] Rotate (E)
-      - [x] Scale (R)
-      - [ ] More
-    - [ ] 3D Gizmos
-      - [ ] QWER gizmos
-      - [ ] Orientation gizmos
-      - [ ] Icon gizmos
-        - [ ] Camera Icon
-        - [ ] Camera View Frustum Debug Draw
-    - [ ] Entity Selection
-  - [ ] Game View
-    - [x] Render Target View
-    - [ ] Tool bar
-      - [x] Resolution Picker
-      - [x] Zoom Factor Slider
-      - [ ] More
-  - [ ] Main Tool bar (Play, Next, Pause, Stop, etc.)
-  - [ ] Inspector
-    - [x] Name
-    - [x] Flags
-    - [x] Transform
-    - [ ] More
-- [ ] Project Management
-- [ ] Hot-Reload
+VRI remains the graphics boundary. Platform, rendering and optional GUI come from one libvultra dependency;
+research experiments and pass collections are separate products.
 
 ## License
-This project is under the [MIT](LICENSE) license.
+
+[MIT](LICENSE). Third-party code and assets retain their own notices.
