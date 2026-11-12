@@ -10,8 +10,11 @@ Specific to this repository:
 - The editor is a front end of `vultra-host` from Vultra-CLI. Loading, validation, reloading, the frame graph
   and diagnostics belong to the host; the editor shows them and does not reimplement them. A feature the
   command line also needs goes into the host first.
-- Build UI in `onImGui()`, change the session between completed frames in `onUpdate()`, record in
-  `onRender()`. The GUI lets go of the session's display image before the session replaces it.
+- Build UI in `onImGui()`. Everything that changes or renders the session happens in `onUpdate()`, between
+  completed frames: reloads, resizes and one recording per viewport into that viewport's image. `onRender()`
+  draws the GUI only. The GUI lets go of a viewport's image before it is destroyed.
+- A window is docked through the default layout in `defaultLayout()`; give a new window a place there and an
+  entry in the `View` menu.
 - Do not bring code back from `dev-VRI` wholesale. A piece that is needed arrives as a package or as a small,
   reviewed addition.
 - Temporary verification output goes to the ignored `build/.tmp/`.
