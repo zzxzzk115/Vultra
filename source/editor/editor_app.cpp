@@ -12,6 +12,9 @@
 #include <spdlog/sinks/callback_sink.h>
 
 #include <algorithm>
+#include <array>
+#include <cfloat>
+#include <climits>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
@@ -21,6 +24,140 @@ namespace vultra::editor
 {
     namespace
     {
+        // Controls for the fields present in `value`, labelled with their names; true when one changed. A field
+        // without a default that the value does not have, such as the camera's `fov` when it has `vertical_fov`,
+        // has no control. Files are shown relative to `base` and are not edited here.
+        bool
+        fieldControls(std::span<const host::FieldDesc> fields, nlohmann::json& value, const std::filesystem::path& base)
+        {
+            bool changed = false;
+            for (const auto& field : fields)
+            {
+                const auto found = value.find(field.name);
+                if (found == value.end())
+                {
+                    continue;
+                }
+                auto&       member  = *found;
+                const auto* label   = field.name.c_str();
+                const float minimum = field.minimum ? float(*field.minimum) : -FLT_MAX;
+                const float maximum = field.maximum ? float(*field.maximum) : FLT_MAX;
+                // A drag of the whole range takes about a thousand pixels; unbounded fields move by hundredths.
+                const float speed = field.minimum && field.maximum ?
+                                        std::max(float(*field.maximum - *field.minimum) / 1000, 1e-3f) :
+                                        0.01f;
+                switch (field.type)
+                {
+                    case host::FieldType::eFloat: {
+                        float number = member.get<float>();
+                        if (ImGui::DragFloat(label, &number, speed, minimum, maximum))
+                        {
+                            member  = number;
+                            changed = true;
+                        }
+                        break;
+                    }
+                    case host::FieldType::eInt: {
+                        int number = member.get<int>();
+                        if (ImGui::DragInt(label,
+                                           &number,
+                                           std::max(speed, 0.1f),
+                                           field.minimum ? int(*field.minimum) : INT_MIN,
+                                           field.maximum ? int(*field.maximum) : INT_MAX))
+                        {
+                            member  = number;
+                            changed = true;
+                        }
+                        break;
+                    }
+                    case host::FieldType::eBool: {
+                        bool flag = member.get<bool>();
+                        if (ImGui::Checkbox(label, &flag))
+                        {
+                            member  = flag;
+                            changed = true;
+                        }
+                        break;
+                    }
+                    case host::FieldType::eVec2:
+                    case host::FieldType::eVec3:
+                    case host::FieldType::eVec4:
+                    case host::FieldType::eColor: {
+                        std::array<float, 4> parts {};
+                        for (size_t index = 0; index < member.size(); ++index)
+                        {
+                            parts[index] = member[index].get<float>();
+                        }
+                        bool edited = false;
+                        if (field.type == host::FieldType::eColor)
+                        {
+                            edited = ImGui::ColorEdit3(label, parts.data(), ImGuiColorEditFlags_Float);
+                        }
+                        else
+                        {
+                            edited = ImGui::DragScalarN(label,
+                                                        ImGuiDataType_Float,
+                                                        parts.data(),
+                                                        int(member.size()),
+                                                        speed,
+                                                        &minimum,
+                                                        &maximum);
+                        }
+                        if (edited)
+                        {
+                            for (size_t index = 0; index < member.size(); ++index)
+                            {
+                                member[index] = parts[index];
+                            }
+                            changed = true;
+                        }
+                        break;
+                    }
+                    case host::FieldType::eEnum: {
+                        const auto current = member.get<std::string>();
+                        if (ImGui::BeginCombo(label, current.c_str()))
+                        {
+                            for (const auto& option : field.options)
+                            {
+                                if (ImGui::Selectable(option.c_str(), option == current) && option != current)
+                                {
+                                    member  = option;
+                                    changed = true;
+                                }
+                            }
+                            ImGui::EndCombo();
+                        }
+                        break;
+                    }
+                    case host::FieldType::eString:
+                    case host::FieldType::eEntity: {
+                        std::array<char, 256> text {};
+                        const auto            current = member.get<std::string>();
+                        std::copy_n(current.begin(), std::min(current.size(), text.size() - 1), text.begin());
+                        if (ImGui::InputText(label, text.data(), text.size(), ImGuiInputTextFlags_EnterReturnsTrue))
+                        {
+                            member  = std::string(text.data());
+                            changed = true;
+                        }
+                        break;
+                    }
+                    case host::FieldType::eFile: {
+                        const auto relative = std::filesystem::path(member.get<std::string>()).lexically_relative(base);
+                        ImGui::LabelText(label, "%s", relative.generic_string().c_str());
+                        break;
+                    }
+                    case host::FieldType::eGroup:
+                        if (ImGui::TreeNodeEx(label, ImGuiTreeNodeFlags_DefaultOpen))
+                        {
+                            changed = fieldControls(field.fields, member, base) || changed;
+                            ImGui::TreePop();
+                        }
+                        break;
+                }
+            }
+            return changed;
+        }
+
         constexpr const char* kParameterWindow = "Pass parameters";
         constexpr const char* kResourceWindow  = "Resources";
         constexpr const char* kConsoleWindow   = "Console";
@@ -946,88 +1083,38 @@ namespace vultra::editor
             }
             auto& registry = world.registry();
             ImGui::TextUnformatted(m_Selected.c_str());
-            if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen))
+            // Every described component the entity has, built-in ones first, with controls made from its fields.
+            // An edit that breaks a rule of the component, such as a zero scale or a frustum that does not open, is
+            // not applied.
+            for (const auto list : {host::builtinComponents(), m_Registry.packageComponents()})
             {
-                auto& transform = registry.get<host::Transform>(entity);
-                ImGui::DragFloat3("Position", &transform.position.x, 0.01f);
-                ImGui::DragFloat3("Rotation", &transform.rotation.x, 0.5f);
-                glm::vec3 scale = transform.scale;
-                // A scale of zero on an axis has no inverse and is not a valid scene.
-                if (ImGui::DragFloat3("Scale", &scale.x, 0.01f) && scale.x != 0 && scale.y != 0 && scale.z != 0)
+                for (const auto& component : list)
                 {
-                    transform.scale = scale;
-                }
-                if (registry.all_of<host::AnimationComponent>(entity))
-                {
-                    ImGui::TextDisabled("An animation moves this entity every frame.");
-                }
-            }
-            if (const auto* model = registry.try_get<host::ModelComponent>(entity);
-                model && ImGui::CollapsingHeader("Model", ImGuiTreeNodeFlags_DefaultOpen))
-            {
-                ImGui::TextWrapped("%s", model->file.lexically_relative(m_Base).generic_string().c_str());
-            }
-            if (auto* light = registry.try_get<host::LightComponent>(entity);
-                light && ImGui::CollapsingHeader("Light", ImGuiTreeNodeFlags_DefaultOpen))
-            {
-                int kind = int(light->kind);
-                if (ImGui::Combo("Kind", &kind, "directional\0point\0spot\0"))
-                {
-                    light->kind = RenderLightKind(kind);
-                }
-                ImGui::ColorEdit3("Color", &light->color.x, ImGuiColorEditFlags_Float);
-                ImGui::DragFloat("Intensity", &light->intensity, 0.05f, 0, 1e6f);
-                if (light->kind != RenderLightKind::eDirectional)
-                {
-                    ImGui::DragFloat("Range", &light->range, 0.05f, 1e-3f, 1e6f);
-                }
-                if (light->kind == RenderLightKind::eSpot)
-                {
-                    ImGui::DragFloat("Inner cone", &light->innerCone, 0.25f, 0, light->outerCone);
-                    ImGui::DragFloat("Outer cone", &light->outerCone, 0.25f, light->innerCone, 89);
-                }
-            }
-            if (auto* camera = registry.try_get<host::CameraComponent>(entity);
-                camera && ImGui::CollapsingHeader("Camera", ImGuiTreeNodeFlags_DefaultOpen))
-            {
-                if (camera->fov)
-                {
-                    // The four half angles are edited as two pairs: the frustum has to stay open.
-                    ImGui::DragFloat2("Left, right", &camera->fov->left, 0.25f, -89, 89);
-                    ImGui::DragFloat2("Up, down", &camera->fov->up, 0.25f, -89, 89);
-                    camera->fov->right = std::max(camera->fov->right, 0.25f - camera->fov->left);
-                    camera->fov->down  = std::max(camera->fov->down, 0.25f - camera->fov->up);
-                }
-                else
-                {
-                    float vertical = camera->verticalFov.value_or(45.0f);
-                    if (ImGui::DragFloat("Vertical field of view", &vertical, 0.25f, 1, 179))
+                    auto value = component.read(registry, entity);
+                    if (value.is_null() ||
+                        !ImGui::CollapsingHeader(component.name.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
                     {
-                        camera->verticalFov = vertical;
+                        continue;
                     }
+                    ImGui::PushID(component.name.c_str());
+                    if (fieldControls(component.fields, value, m_Base) && (!component.check || !component.check(value)))
+                    {
+                        if (auto written = component.write(registry, entity, value); !written)
+                        {
+                            log(component.name + ": " + written.error().message, true);
+                        }
+                    }
+                    if (component.name == "transform" && registry.all_of<host::AnimationComponent>(entity))
+                    {
+                        ImGui::TextDisabled("An animation moves this entity every frame.");
+                    }
+                    ImGui::PopID();
                 }
-                ImGui::DragFloat("Near", &camera->nearPlane, 0.01f, 1e-4f, camera->farPlane * 0.5f);
-                ImGui::DragFloat("Far", &camera->farPlane, 0.5f, camera->nearPlane * 2, 1e7f);
-            }
-            if (const auto* environment = registry.try_get<host::EnvironmentComponent>(entity);
-                environment && ImGui::CollapsingHeader("Environment", ImGuiTreeNodeFlags_DefaultOpen))
-            {
-                ImGui::TextWrapped("%s", environment->file.lexically_relative(m_Base).generic_string().c_str());
             }
             if (const auto* animation = registry.try_get<host::AnimationComponent>(entity);
-                animation && ImGui::CollapsingHeader("Animation"))
+                animation && ImGui::CollapsingHeader("animation"))
             {
                 ImGui::Text("%zu tracks%s", animation->tracks.size(), animation->loop ? ", looping" : "");
-            }
-            if (const auto* custom = registry.try_get<host::CustomComponents>(entity))
-            {
-                for (const auto& [name, value] : custom->components)
-                {
-                    if (ImGui::CollapsingHeader(name.c_str()))
-                    {
-                        ImGui::TextWrapped("%s", value.dump(2).c_str());
-                    }
-                }
             }
         }
         ImGui::End();
@@ -1038,7 +1125,7 @@ namespace vultra::editor
     void EditorApp::saveScene()
     {
         const auto& file = m_Runtime->session().workspace()->scene.file;
-        const auto  text = host::writeScene(m_Runtime->session().world().describe(file), m_Base);
+        const auto  text = host::writeScene(m_Runtime->session().world().describe(file), m_Base, m_Registry);
         if (auto written = writeFileAtomically(file, std::as_bytes(std::span(text.data(), text.size()))); !written)
         {
             log("could not save the scene: " + written.error().message, true);
