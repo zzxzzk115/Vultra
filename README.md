@@ -7,7 +7,7 @@ with `vultra run`.
 | Window | Shows |
 | --- | --- |
 | Viewport N | The project's tone-mapped image through that viewport's own camera. |
-| Scene | The entities of the project's `.vscene` as a tree; a click selects one. |
+| Scene | The entities of the project's `.vscene` as a tree, with the nodes of each model below its entity; a click selects one. |
 | Inspector | The components of the selected entity: transform, light and camera can be changed, the others are shown. |
 | Pass parameters | A slider for every parameter of the project's graph. |
 | Resources | The render path, the resources a graph can read with format, semantic and provider, and the passes of the frame. |
@@ -35,8 +35,8 @@ kept. An entity that an animation moves shows its animated values, and saving wr
 
 ## Layout
 
-The windows are docked into one dock space: viewports in the centre, the scene and the pass parameters above the
-inspector and the resources on the right, the console along the bottom. Every window can be dragged to another place, tabbed with another one or
+The windows are docked into one dock space: viewports in the centre; the scene, the inspector and, as tabs, the pass
+parameters and the resources down the right; the console along the bottom. Every window can be dragged to another place, tabbed with another one or
 pulled out of the main window. `View > Reset layout` brings the default back, and the `View` menu shows and
 hides each window.
 

@@ -747,8 +747,8 @@ namespace vultra::editor
         ImGui::EndPopup();
     }
 
-    // Viewports in the centre, the scene and the pass parameters above the inspector and the resources on the
-    // right, the console along the bottom. Applied
+    // Viewports in the centre; the scene, the inspector and the tabbed parameters and resources down the right;
+    // the console along the bottom. Applied
     // when there is no saved layout and on "Reset layout"; afterwards the user's docking is kept.
     void EditorApp::defaultLayout()
     {
@@ -764,8 +764,10 @@ namespace vultra::editor
         ImGuiID       centre = dockspace;
         const ImGuiID right  = ImGui::DockBuilderSplitNode(centre, ImGuiDir_Right, 0.26f, nullptr, &centre);
         const ImGuiID bottom = ImGui::DockBuilderSplitNode(centre, ImGuiDir_Down, 0.26f, nullptr, &centre);
-        ImGuiID       upper  = right;
-        const ImGuiID lower  = ImGui::DockBuilderSplitNode(upper, ImGuiDir_Down, 0.55f, nullptr, &upper);
+        // The right column from the top: the scene, the inspector, then parameters and resources as tabs.
+        ImGuiID       scene     = right;
+        ImGuiID       inspector = ImGui::DockBuilderSplitNode(scene, ImGuiDir_Down, 0.7f, nullptr, &scene);
+        const ImGuiID lower     = ImGui::DockBuilderSplitNode(inspector, ImGuiDir_Down, 0.4f, nullptr, &inspector);
         // Two viewports stand side by side; further ones are tabs of the first. Without a project the first
         // viewport's window is still shown, and says so.
         ImGuiID second = 0;
@@ -778,10 +780,9 @@ namespace vultra::editor
         {
             ImGui::DockBuilderDockWindow(m_Viewports[index].title.c_str(), index == 1 ? second : centre);
         }
-        // The first window docked into a node is its front tab.
-        ImGui::DockBuilderDockWindow(kSceneWindow, upper);
-        ImGui::DockBuilderDockWindow(kParameterWindow, upper);
-        ImGui::DockBuilderDockWindow(kInspectorWindow, lower);
+        ImGui::DockBuilderDockWindow(kSceneWindow, scene);
+        ImGui::DockBuilderDockWindow(kInspectorWindow, inspector);
+        ImGui::DockBuilderDockWindow(kParameterWindow, lower);
         ImGui::DockBuilderDockWindow(kResourceWindow, lower);
         ImGui::DockBuilderDockWindow(kConsoleWindow, bottom);
         ImGui::DockBuilderFinish(dockspace);
