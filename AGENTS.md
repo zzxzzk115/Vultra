@@ -15,6 +15,9 @@ Specific to this repository:
   draws the GUI only. The GUI lets go of a viewport's image before it is destroyed.
 - A window is docked through the default layout in `defaultLayout()`; give a new window a place there and an
   entry in the `View` menu.
+- What the editor keeps for a project goes into the project's `.vultra/editor.json`; the docking layout
+  belongs to the user. Tests pass `--layout` and never write the user's layout.
+- Behaviour that can be observed from outside gets a case in `tests/run.lua`.
 - Do not bring code back from `dev-VRI` wholesale. A piece that is needed arrives as a package or as a small,
   reviewed addition.
 - Temporary verification output goes to the ignored `build/.tmp/`.
