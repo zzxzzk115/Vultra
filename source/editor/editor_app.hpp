@@ -93,6 +93,10 @@ namespace vultra::editor
         void                       defaultLayout();
         std::expected<void, Error> viewportWindow(Viewport& viewport);
         std::expected<void, Error> parameterWindow();
+        void                       sceneWindow();
+        void                       sceneNode(entt::entity entity);
+        void                       inspectorWindow();
+        void                       saveScene();
         void                       resourceWindow();
         void                       consoleWindow();
 
@@ -137,6 +141,10 @@ namespace vultra::editor
         bool        m_ShowParameters = true;
         bool        m_ShowResources  = true;
         bool        m_ShowConsole    = true;
+        bool        m_ShowScene      = true;
+        bool        m_ShowInspector  = true;
+        // The entity the inspector shows, by its path: a reload keeps the selection.
+        std::string m_Selected;
         // "Open project": the popup's text and the project to open before the next frame.
         bool                                 m_AskProject = false;
         std::array<char, 1024>               m_ProjectText {};

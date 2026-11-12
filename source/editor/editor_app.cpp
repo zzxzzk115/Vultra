@@ -24,6 +24,8 @@ namespace vultra::editor
         constexpr const char* kParameterWindow = "Pass parameters";
         constexpr const char* kResourceWindow  = "Resources";
         constexpr const char* kConsoleWindow   = "Console";
+        constexpr const char* kSceneWindow     = "Scene";
+        constexpr const char* kInspectorWindow = "Inspector";
         constexpr const char* kProjectPopup    = "Open project";
         constexpr size_t      kConsoleLines    = 2000;
 
@@ -252,6 +254,10 @@ namespace vultra::editor
         getWindow().setTitle(("Vultra Editor | " + workspace->project.name).c_str());
         describe(*workspace);
         restoreState();
+        // The inspector starts on the scene's first entity.
+        const auto entities = m_Runtime->session().world().entities();
+        m_Selected          = entities.empty() ? std::string() :
+                                                 m_Runtime->session().world().registry().get<host::Node>(entities.front()).path;
         // --viewports applies to the project of the command line only.
         m_Options.viewports.reset();
         log("loaded " + workspace->project.name + " (" + host::modeName(m_Options.mode) + ")");
@@ -667,6 +673,12 @@ namespace vultra::editor
             {
                 m_AskProject = true;
             }
+            const bool scene =
+                m_Runtime && m_Runtime->session().workspace() && !m_Runtime->session().workspace()->scene.file.empty();
+            if (ImGui::MenuItem("Save scene", nullptr, false, scene))
+            {
+                saveScene();
+            }
             ImGui::Separator();
             if (ImGui::MenuItem("Quit"))
             {
@@ -686,6 +698,8 @@ namespace vultra::editor
                 ImGui::MenuItem(viewport.title.c_str(), nullptr, &viewport.open);
             }
             ImGui::Separator();
+            ImGui::MenuItem(kSceneWindow, nullptr, &m_ShowScene);
+            ImGui::MenuItem(kInspectorWindow, nullptr, &m_ShowInspector);
             ImGui::MenuItem(kParameterWindow, nullptr, &m_ShowParameters);
             ImGui::MenuItem(kResourceWindow, nullptr, &m_ShowResources);
             ImGui::MenuItem(kConsoleWindow, nullptr, &m_ShowConsole);
@@ -733,7 +747,8 @@ namespace vultra::editor
         ImGui::EndPopup();
     }
 
-    // Viewports in the centre, parameters above resources on the right, the console along the bottom. Applied
+    // Viewports in the centre, the scene and the pass parameters above the inspector and the resources on the
+    // right, the console along the bottom. Applied
     // when there is no saved layout and on "Reset layout"; afterwards the user's docking is kept.
     void EditorApp::defaultLayout()
     {
@@ -763,7 +778,10 @@ namespace vultra::editor
         {
             ImGui::DockBuilderDockWindow(m_Viewports[index].title.c_str(), index == 1 ? second : centre);
         }
+        // The first window docked into a node is its front tab.
+        ImGui::DockBuilderDockWindow(kSceneWindow, upper);
         ImGui::DockBuilderDockWindow(kParameterWindow, upper);
+        ImGui::DockBuilderDockWindow(kInspectorWindow, lower);
         ImGui::DockBuilderDockWindow(kResourceWindow, lower);
         ImGui::DockBuilderDockWindow(kConsoleWindow, bottom);
         ImGui::DockBuilderFinish(dockspace);
@@ -858,6 +876,174 @@ namespace vultra::editor
         }
         ImGui::End();
         return {};
+    }
+
+    // The entities of the scene as a tree; a click selects one for the inspector.
+    void EditorApp::sceneNode(entt::entity entity)
+    {
+        const auto& world = m_Runtime->session().world();
+        const auto& node  = world.registry().get<host::Node>(entity);
+        const auto  flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_DefaultOpen |
+                           (node.children.empty() ? ImGuiTreeNodeFlags_Leaf : 0) |
+                           (node.path == m_Selected ? ImGuiTreeNodeFlags_Selected : 0);
+        const bool open = ImGui::TreeNodeEx(node.path.c_str(), flags, "%s", node.name.c_str());
+        if (ImGui::IsItemClicked())
+        {
+            m_Selected = node.path;
+        }
+        if (open)
+        {
+            for (const auto child : node.children)
+            {
+                sceneNode(child);
+            }
+            ImGui::TreePop();
+        }
+    }
+
+    void EditorApp::sceneWindow()
+    {
+        if (!m_ShowScene)
+        {
+            return;
+        }
+        if (ImGui::Begin(kSceneWindow, &m_ShowScene) && m_Runtime)
+        {
+            const auto& world = m_Runtime->session().world();
+            if (world.entities().empty())
+            {
+                ImGui::TextDisabled("The project names no scene, or the scene is empty.");
+            }
+            for (const auto entity : world.entities())
+            {
+                if (world.registry().get<host::Node>(entity).parent == entt::null)
+                {
+                    sceneNode(entity);
+                }
+            }
+        }
+        ImGui::End();
+    }
+
+    // The components of the selected entity. Changes go to the live scene at once, between completed frames,
+    // and reach the file with "Save scene".
+    void EditorApp::inspectorWindow()
+    {
+        if (!m_ShowInspector)
+        {
+            return;
+        }
+        if (ImGui::Begin(kInspectorWindow, &m_ShowInspector) && m_Runtime)
+        {
+            auto&      world  = m_Runtime->session().world();
+            const auto entity = world.find(m_Selected);
+            if (entity == entt::null)
+            {
+                ImGui::TextDisabled("Select an entity in the scene.");
+                ImGui::End();
+                return;
+            }
+            auto& registry = world.registry();
+            ImGui::TextUnformatted(m_Selected.c_str());
+            if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen))
+            {
+                auto& transform = registry.get<host::Transform>(entity);
+                ImGui::DragFloat3("Position", &transform.position.x, 0.01f);
+                ImGui::DragFloat3("Rotation", &transform.rotation.x, 0.5f);
+                glm::vec3 scale = transform.scale;
+                // A scale of zero on an axis has no inverse and is not a valid scene.
+                if (ImGui::DragFloat3("Scale", &scale.x, 0.01f) && scale.x != 0 && scale.y != 0 && scale.z != 0)
+                {
+                    transform.scale = scale;
+                }
+                if (registry.all_of<host::AnimationComponent>(entity))
+                {
+                    ImGui::TextDisabled("An animation moves this entity every frame.");
+                }
+            }
+            if (const auto* model = registry.try_get<host::ModelComponent>(entity);
+                model && ImGui::CollapsingHeader("Model", ImGuiTreeNodeFlags_DefaultOpen))
+            {
+                ImGui::TextWrapped("%s", model->file.lexically_relative(m_Base).generic_string().c_str());
+            }
+            if (auto* light = registry.try_get<host::LightComponent>(entity);
+                light && ImGui::CollapsingHeader("Light", ImGuiTreeNodeFlags_DefaultOpen))
+            {
+                int kind = int(light->kind);
+                if (ImGui::Combo("Kind", &kind, "directional\0point\0spot\0"))
+                {
+                    light->kind = RenderLightKind(kind);
+                }
+                ImGui::ColorEdit3("Color", &light->color.x, ImGuiColorEditFlags_Float);
+                ImGui::DragFloat("Intensity", &light->intensity, 0.05f, 0, 1e6f);
+                if (light->kind != RenderLightKind::eDirectional)
+                {
+                    ImGui::DragFloat("Range", &light->range, 0.05f, 1e-3f, 1e6f);
+                }
+                if (light->kind == RenderLightKind::eSpot)
+                {
+                    ImGui::DragFloat("Inner cone", &light->innerCone, 0.25f, 0, light->outerCone);
+                    ImGui::DragFloat("Outer cone", &light->outerCone, 0.25f, light->innerCone, 89);
+                }
+            }
+            if (auto* camera = registry.try_get<host::CameraComponent>(entity);
+                camera && ImGui::CollapsingHeader("Camera", ImGuiTreeNodeFlags_DefaultOpen))
+            {
+                if (camera->fov)
+                {
+                    // The four half angles are edited as two pairs: the frustum has to stay open.
+                    ImGui::DragFloat2("Left, right", &camera->fov->left, 0.25f, -89, 89);
+                    ImGui::DragFloat2("Up, down", &camera->fov->up, 0.25f, -89, 89);
+                    camera->fov->right = std::max(camera->fov->right, 0.25f - camera->fov->left);
+                    camera->fov->down  = std::max(camera->fov->down, 0.25f - camera->fov->up);
+                }
+                else
+                {
+                    float vertical = camera->verticalFov.value_or(45.0f);
+                    if (ImGui::DragFloat("Vertical field of view", &vertical, 0.25f, 1, 179))
+                    {
+                        camera->verticalFov = vertical;
+                    }
+                }
+                ImGui::DragFloat("Near", &camera->nearPlane, 0.01f, 1e-4f, camera->farPlane * 0.5f);
+                ImGui::DragFloat("Far", &camera->farPlane, 0.5f, camera->nearPlane * 2, 1e7f);
+            }
+            if (const auto* environment = registry.try_get<host::EnvironmentComponent>(entity);
+                environment && ImGui::CollapsingHeader("Environment", ImGuiTreeNodeFlags_DefaultOpen))
+            {
+                ImGui::TextWrapped("%s", environment->file.lexically_relative(m_Base).generic_string().c_str());
+            }
+            if (const auto* animation = registry.try_get<host::AnimationComponent>(entity);
+                animation && ImGui::CollapsingHeader("Animation"))
+            {
+                ImGui::Text("%zu tracks%s", animation->tracks.size(), animation->loop ? ", looping" : "");
+            }
+            if (const auto* custom = registry.try_get<host::CustomComponents>(entity))
+            {
+                for (const auto& [name, value] : custom->components)
+                {
+                    if (ImGui::CollapsingHeader(name.c_str()))
+                    {
+                        ImGui::TextWrapped("%s", value.dump(2).c_str());
+                    }
+                }
+            }
+        }
+        ImGui::End();
+    }
+
+    // Writes the live scene over the project's scene file. The file watcher then loads the project again from
+    // it, as after any other edit of the file.
+    void EditorApp::saveScene()
+    {
+        const auto& file = m_Runtime->session().workspace()->scene.file;
+        const auto  text = host::writeScene(m_Runtime->session().world().describe(file), m_Base);
+        if (auto written = writeFileAtomically(file, std::as_bytes(std::span(text.data(), text.size()))); !written)
+        {
+            log("could not save the scene: " + written.error().message, true);
+            return;
+        }
+        log("saved " + file.lexically_relative(m_Base).generic_string());
     }
 
     void EditorApp::resourceWindow()
@@ -973,6 +1159,8 @@ namespace vultra::editor
         {
             return shown;
         }
+        sceneWindow();
+        inspectorWindow();
         resourceWindow();
         consoleWindow();
         return m_Runtime ? m_Runtime->gui() : std::expected<void, Error> {};

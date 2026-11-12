@@ -7,6 +7,8 @@ with `vultra run`.
 | Window | Shows |
 | --- | --- |
 | Viewport N | The project's tone-mapped image through that viewport's own camera. |
+| Scene | The entities of the project's `.vscene` as a tree; a click selects one. |
+| Inspector | The components of the selected entity: transform, light and camera can be changed, the others are shown. |
 | Pass parameters | A slider for every parameter of the project's graph. |
 | Resources | The render path, the resources a graph can read with format, semantic and provider, and the passes of the frame. |
 | Console | Loads and reloads, the diagnostics of an edit that was not applied, and what the kernel logs, such as shader compilation and asset import. Script problems stay at the top until fixed. |
@@ -25,10 +27,16 @@ A project that cannot be opened is reported in the console and the open one stay
 
 For every project the editor keeps `.vultra/editor.json` in the project: the open viewports and their cameras.
 
+## Scene
+
+Changes in the inspector go to the running scene at once. `File > Save scene` writes the scene as it is now
+over the project's `.vscene` file, in the form the host writes it: comments and the layout of the text are not
+kept. An entity that an animation moves shows its animated values, and saving writes those.
+
 ## Layout
 
-The windows are docked into one dock space: viewports in the centre, pass parameters above resources on the
-right, the console along the bottom. Every window can be dragged to another place, tabbed with another one or
+The windows are docked into one dock space: viewports in the centre, the scene and the pass parameters above the
+inspector and the resources on the right, the console along the bottom. Every window can be dragged to another place, tabbed with another one or
 pulled out of the main window. `View > Reset layout` brings the default back, and the `View` menu shows and
 hides each window.
 
@@ -131,7 +139,8 @@ editor with a copy of the panel package and edits that copy, which takes several
 - Each viewport costs one more recording and one more wait for the GPU per frame.
 - A viewport shows the display image only, not another output of the graph.
 - A project is opened by typing its path; there is no file dialog.
-- There is no node graph editor, scene hierarchy, asset browser or undo.
+- Entities cannot be added, removed, renamed or dragged in the viewport, and components cannot be added.
+- There is no node graph editor, asset browser or undo.
 
 ## Earlier work
 
