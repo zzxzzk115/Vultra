@@ -1,8 +1,0 @@
-<Project>
-  <ItemGroup>
-    <ProjectReference Include="$(MSBuildThisFileDirectory)Vultra.Scripting.csproj" />
-    <ProjectReference Include="$(MSBuildThisFileDirectory)generators/Vultra.Scripting.Generators.csproj"
-                      OutputItemType="Analyzer" ReferenceOutputAssembly="false" PrivateAssets="all"
-                      GlobalPropertiesToRemove="OutputPath;OutDir" />
-  </ItemGroup>
-</Project>
