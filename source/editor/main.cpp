@@ -66,7 +66,7 @@ int main(int argc, char** argv)
     argparse::ArgumentParser parser("vultra-editor", "0.1.0", argparse::default_arguments::none);
     parser.add_description("Open a Vultra project in the editor.");
     vultra::addAppOptions(parser);
-    parser.add_argument("project").help("project directory or .vproject file").default_value(std::string("."));
+    parser.add_argument("--project").help("project directory or .vproject file").default_value(std::string("."));
     parser.add_argument("--capture").help("save the window of the last frame (the first without --frames)");
     parser.add_argument("--viewports")
         .help("viewports open at the start")
@@ -82,7 +82,7 @@ int main(int argc, char** argv)
     {
         return 0;
     }
-    const Options options {parser.get<std::string>("project"),
+    const Options options {parser.get<std::string>("--project"),
                            parser.present<uint64_t>("--frames").value_or(0),
                            parser.present<std::string>("--capture").value_or(""),
                            parser.get<uint32_t>("--viewports")};

@@ -59,11 +59,11 @@ xmake build vultra-editor
 ## Run
 
 ```sh
-vultra-editor [project] [--viewports N] [--frames N] [--capture file.png]
+vultra-editor [--project DIR] [--viewports N] [--frames N] [--capture file.png]
 vultra edit [project]
 ```
 
-`project` is a project directory or a `.vproject` file and defaults to the current directory. `--viewports`
+The project is a project directory or a `.vproject` file and defaults to the current directory. `--viewports`
 opens that many viewports at the start. `--frames` closes the editor after N frames; `--capture` saves the
 window of the last frame. `vultra edit` finds the
 editor through the environment variable `VULTRA_EDITOR`, beside the `vultra` executable, or on `PATH`.
