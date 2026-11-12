@@ -1,46 +1,66 @@
-# Vultra
+# Vultra Editor
 
-A C++23 engine built on libvultra. The `dev-VRI` branch is an early engine-core migration: an EnTT world,
-Node/Resource authoring, JSON persistence, generated C interfaces and optional Native C++/Lua/C# scripting.
-A CPU world needs no window, GPU, GUI or language VM.
+The editor of the Vultra ecosystem, on the `dev-editor` branch. It is a small ImGui desktop program on the
+same host library as the `vultra` command line, so a project loads, reloads and fails here exactly as it does
+with `vultra run`.
 
-The current targets are `vultra-engine`, `vultra-native-sdk`, optional `vultra-scripting` and the .NET 10
-`vultra-managed-host`. Editor, Player, export tools and the scripting showcase are not integrated into the
-current build. The earlier editor/hub sources remain migration inputs; their old screenshots and commands
-are not instructions for this branch.
+| Window | Shows |
+| --- | --- |
+| Viewport | The project's tone-mapped image at the window's size. Left drag orbits, middle or right drag pans, the wheel dollies. |
+| Pass parameters | A slider for every parameter of the project's graph. |
+| Resources | The render path, the resources a graph can read with format, semantic and provider, and the passes of the frame. |
+| Console | Loads and reloads, and the diagnostics of an edit that was not applied. Script problems stay at the top until fixed. |
 
-## Build the core
+Project files are watched. An edit that does not validate is listed in the console with its diagnostic code,
+for example `VG002`, and the viewport keeps the last image that worked.
 
-Install xmake and a C++23 compiler, then clone the branch with its pinned library dependency:
+## Build
 
-```sh
-git clone --branch dev-VRI --recurse-submodules https://github.com/zzxzzk115/Vultra.git
-cd Vultra
+The editor is built against sibling checkouts of
+[Vultra-CLI](https://github.com/zzxzzk115/Vultra-CLI) (the host library),
+[libvultra](https://github.com/zzxzzk115/libvultra) (the kernel, branch `dev-slim`) and
+[Vultra-Packages](https://github.com/zzxzzk115/Vultra-Packages) (the scripting package):
+
+```
+GitHubProjects/
+  Vultra/           this repository
+  Vultra-CLI/
+  Vultra-Packages/
+  libvultra/
 ```
 
+Install xmake and a C++23 compiler, then:
+
 ```sh
-xmake f -m release --vultra_features=world -y
-xmake build --all
-xmake test -v
+xmake f -m release -y
+xmake build vultra-editor
 ```
 
-The default build uses `external/libvultra`. Coordinated development can select a sibling checkout with
-`--libvultra_dir=../libvultra`.
-See [BUILD.md](BUILD.md) for graphics, language hosts, generation and test commands.
-[Architecture](docs/architecture.md) defines ownership and formats; [roadmap](docs/roadmap.md) lists the remaining
-engine gates. Migration state and cross-machine notes are in [handoff](docs/ai/handoff.md).
+`--vultra_cli_dir=<path>` selects another Vultra-CLI checkout.
 
-## Design
+## Run
 
-- EnTT owns runtime entities/components. Node is an authoring and scripting facade, with no per-frame mirror.
-- Projects own asset/type catalogs; worlds own live identity, hierarchy, resources and execution.
-- Native, Lua and safe C# use the same property schemas, object IDs and lifecycle.
-- Documents will own undo/history and a separate Play world. Those editor workflows are still planned.
-- All engine file/ABI versions remain **1** before release; format changes update both readers and writers.
+```sh
+vultra-editor [project] [--frames N] [--capture file.png]
+vultra edit [project]
+```
 
-VRI remains the graphics boundary. Platform, rendering and optional GUI come from one libvultra dependency;
-research experiments and pass collections are separate products.
+`project` is a project directory or a `.vproject` file and defaults to the current directory. `--frames`
+closes the editor after N frames; `--capture` saves the window of the last frame. `vultra edit` finds the
+editor through the environment variable `VULTRA_EDITOR`, beside the `vultra` executable, or on `PATH`.
 
-## License
+The window layout is stored in the project, under `.vultra/editor.ini`.
 
-[MIT](LICENSE). Third-party code and assets retain their own notices.
+## Limits
+
+- Verified on Windows 11 with Vulkan only. The docking, resizing and camera were not operated by a person.
+- The project gets no keyboard or mouse input from the viewport.
+- The editor carries the scripting package only. For a project with other native packages the console names
+  the missing ones; run such a project with `vultra run`.
+- There is no node graph editor, scene hierarchy, asset browser or undo.
+
+## Earlier work
+
+The engine core that this repository held before (an EnTT world, scripting hosts, generated interfaces, the
+earlier editor and hub) is on the `dev-VRI` branch. It is the source for later packages, not part of this
+branch.
