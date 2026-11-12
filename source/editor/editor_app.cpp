@@ -312,7 +312,7 @@ namespace vultra::editor
     // What the resource window lists, kept as text so it does not refer to a workspace that was replaced.
     void EditorApp::describe(const host::Workspace& workspace)
     {
-        m_RenderPath = workspace.project.renderPath;
+        m_RenderPath = workspace.renderPath.label;
         m_Resources.clear();
         for (const auto& resource : workspace.graph.resources)
         {
