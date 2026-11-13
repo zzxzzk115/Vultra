@@ -24,6 +24,56 @@ namespace vultra::editor
 {
     namespace
     {
+        // Draws the control a pass parameter asks for and returns true with the new value when it was changed.
+        bool parameterControl(const std::string& label, const host::SessionParameter& parameter, double& value)
+        {
+            if (parameter.control == PassControl::eCheckbox)
+            {
+                bool on = value != 0;
+                if (!ImGui::Checkbox(label.c_str(), &on))
+                {
+                    return false;
+                }
+                value = on ? 1 : 0;
+                return true;
+            }
+            if (parameter.control == PassControl::eChoice)
+            {
+                const auto current = std::ranges::find(parameter.choices, value, &PassChoice::value);
+                bool       changed = false;
+                if (ImGui::BeginCombo(label.c_str(), current == parameter.choices.end() ? "" : current->label.c_str()))
+                {
+                    for (const auto& choice : parameter.choices)
+                    {
+                        if (ImGui::Selectable(choice.label.c_str(), choice.value == value))
+                        {
+                            value   = choice.value;
+                            changed = true;
+                        }
+                    }
+                    ImGui::EndCombo();
+                }
+                return changed;
+            }
+            if (parameter.integer)
+            {
+                int whole = int(value);
+                if (!ImGui::SliderInt(label.c_str(), &whole, int(parameter.minimum), int(parameter.maximum)))
+                {
+                    return false;
+                }
+                value = whole;
+                return true;
+            }
+            float real = float(value);
+            if (!ImGui::SliderFloat(label.c_str(), &real, float(parameter.minimum), float(parameter.maximum)))
+            {
+                return false;
+            }
+            value = real;
+            return true;
+        }
+
         // Controls for the fields present in `value`, labelled with their names; true when one changed. A field
         // without a default that the value does not have, such as the camera's `fov` when it has `vertical_fov`,
         // has no control. Files are shown relative to `base` and are not edited here.
@@ -992,19 +1042,11 @@ namespace vultra::editor
             for (const auto& parameter : parameters)
             {
                 const auto label = parameter.label + "##" + parameter.pass + "." + parameter.name;
-                auto       real  = float(parameter.value);
-                auto       whole = int(parameter.value);
-                const bool changed =
-                    parameter.integer ?
-                        ImGui::SliderInt(label.c_str(), &whole, int(parameter.minimum), int(parameter.maximum)) :
-                        ImGui::SliderFloat(label.c_str(), &real, float(parameter.minimum), float(parameter.maximum));
-                if (changed)
+                double     value = parameter.value;
+                if (parameterControl(label, parameter, value))
                 {
                     // Applied before the next frame is recorded; the previous frame has completed.
-                    if (auto set = m_Runtime->session().setParameter(parameter.pass,
-                                                                     parameter.name,
-                                                                     parameter.integer ? double(whole) : double(real));
-                        !set)
+                    if (auto set = m_Runtime->session().setParameter(parameter.pass, parameter.name, value); !set)
                     {
                         ImGui::End();
                         return set;
