@@ -1138,6 +1138,15 @@ namespace vultra::editor
                     {
                         continue;
                     }
+                    // A material is part of the GPU scene and is checked against its type, which the controls
+                    // of its generic fields cannot do: it is shown, and changed in the scene file.
+                    if (component.name == "material")
+                    {
+                        ImGui::TextUnformatted(value.at("type").get_ref<const std::string&>().c_str());
+                        ImGui::TextWrapped("%s", value.at("parameters").dump().c_str());
+                        ImGui::TextDisabled("Edit the material in the scene file.");
+                        continue;
+                    }
                     ImGui::PushID(component.name.c_str());
                     if (fieldControls(component.fields, value, m_Base) && (!component.check || !component.check(value)))
                     {
