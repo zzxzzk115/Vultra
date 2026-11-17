@@ -95,6 +95,25 @@ support.test("a project that cannot be opened ends the command, and no project i
     support.expect(code, output, 2, "Choose one of")
 end, {window = true})
 
+support.test("a material is inspected without being edited", function()
+    -- The inspector starts on the scene's first entity, here the model with a material component.
+    local directory = project("material")
+    local scene = directory .. "/main.vscene"
+    support.edit(scene, '{ "model": { "file": "assets/sphere.gltf" } }',
+                 '{ "model": { "file": "assets/sphere.gltf" }, "material": { "type": "vultra.openpbr", ' ..
+                     '"parameters": { "base_color": [0.9, 0.3, 0.2] } } }')
+    local before = support.read(scene)
+    local code, output = support.run(editor, {"--project", directory, "--frames", "60", "--layout",
+                                              root .. "/material-layout.ini", "--capture", root .. "/material.png"})
+    support.expect(code, output, 0, "loaded material (debug)")
+    if output:find("VUID", 1, true) then
+        support.fail("the GPU validation reported a problem\n" .. output)
+    end
+    if support.read(scene) ~= before then
+        support.fail("showing the material changed the scene file")
+    end
+end, {window = true})
+
 support.test("a graph that does not validate is reported and the fixed graph is loaded again", function()
     local directory = project("reload")
     local started = vultra.process.start(editor, {"--project", directory, "--frames", "1000000", "--layout",
