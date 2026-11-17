@@ -1142,8 +1142,17 @@ namespace vultra::editor
                     // of its generic fields cannot do: it is shown, and changed in the scene file.
                     if (component.name == "material")
                     {
-                        ImGui::TextUnformatted(value.at("type").get_ref<const std::string&>().c_str());
-                        ImGui::TextWrapped("%s", value.at("parameters").dump().c_str());
+                        // Read without nlohmann's throwing accessors: find() and a dump that replaces invalid UTF-8.
+                        const auto type       = value.find("type");
+                        const auto parameters = value.find("parameters");
+                        ImGui::TextUnformatted(type != value.end() && type->is_string() ?
+                                                   type->get_ref<const std::string&>().c_str() :
+                                                   "");
+                        ImGui::TextWrapped(
+                            "%s",
+                            parameters == value.end() ?
+                                "{}" :
+                                parameters->dump(-1, ' ', false, nlohmann::json::error_handler_t::replace).c_str());
                         ImGui::TextDisabled("Edit the material in the scene file.");
                         continue;
                     }
